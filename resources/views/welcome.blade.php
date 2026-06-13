@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PortalHSE — Operations platform for HSE &amp; Sustainability consultancies</title>
+    <title>NovarexHSE — Operations platform for HSE &amp; Sustainability consultancies</title>
     <meta name="description" content="One platform for project delivery, HSE compliance, finance, and payroll — built for Tanzania's HSE &amp; Sustainability consultancies.">
 
     {{-- Fonts: Space Grotesk (display) · IBM Plex Sans (body) · IBM Plex Mono (codes / log feed) --}}
@@ -20,8 +20,8 @@
                     colors: {
                         ink: '#1C2127',
                         paper: '#F6F4EF',
-                        amber: '#E8A23D',
-                        teal: '#3F6E63',
+                        primary: '#3B82F6',
+                        success: '#22C55E',
                         rust: '#C1442D',
                         line: '#DAD4C6',
                         linedark: '#343B45',
@@ -70,7 +70,7 @@
     <header class="border-b border-line">
         <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
             <a href="/" class="flex items-baseline gap-2">
-                <span class="font-display text-xl font-700 tracking-tight">Portal<span class="text-amber">HSE</span></span>
+                <span class="font-display text-xl font-700 tracking-tight">Novarex<span class="text-primary">HSE</span></span>
                 <span class="hidden sm:inline font-mono text-[11px] uppercase tracking-[0.2em] text-ink/50">v1.0 · TZ</span>
             </a>
 
@@ -93,8 +93,8 @@
 
             {{-- Left: thesis --}}
             <div>
-                <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-amber mb-5">
-                    Operations Platform &middot; Dar es Salaam, Tanzania
+                <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-primary mb-5">
+                    Operations Platform &middot; Mwanza, Tanzania
                 </p>
 
                 <h1 class="font-display text-4xl md:text-5xl font-700 leading-[1.08] mb-6">
@@ -110,7 +110,7 @@
 
                 <div class="flex flex-wrap items-center gap-4">
                     <a href="{{ url('/admin') }}"
-                       class="font-mono text-[13px] uppercase tracking-[0.12em] bg-amber text-ink px-6 py-3 hover:bg-amber/90 transition-colors">
+                       class="font-mono text-[13px] uppercase tracking-[0.12em] bg-primary text-white px-6 py-3 hover:bg-primary/90 transition-colors">
                         Sign in to your workspace
                     </a>
                     <a href="#workflow"
@@ -125,7 +125,7 @@
                 <div class="flex items-center justify-between px-4 py-3 border-b border-linedark font-mono text-[11px] uppercase tracking-[0.2em] text-paper/50">
                     <span>Live Operations Log</span>
                     <span class="flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
                         Synced
                     </span>
                 </div>
@@ -134,14 +134,14 @@
                     <div class="log-scroll absolute inset-x-0 top-0">
                         @php
                             $entries = [
-                                ['time' => '08:42', 'ref' => 'WMC-2026-001', 'tag' => 'INC', 'color' => 'bg-rust',  'text' => 'Near miss reported · Mwanza Gold Plant'],
-                                ['time' => '09:15', 'ref' => 'TND-2026-003', 'tag' => 'TND', 'color' => 'bg-amber', 'text' => 'Tender stage → Won · Geita Gold Mining'],
-                                ['time' => '10:03', 'ref' => 'WMC-2026-002', 'tag' => 'ESA', 'color' => 'bg-teal',  'text' => 'OHS audit findings submitted for review'],
-                                ['time' => '11:30', 'ref' => 'INV-2026-0001', 'tag' => 'INV', 'color' => 'bg-amber', 'text' => 'Invoice sent · TZS 43,660,000'],
-                                ['time' => '13:05', 'ref' => 'WMC-EMP-006', 'tag' => 'PAY', 'color' => 'bg-teal',  'text' => 'Payroll processed · PAYE, NSSF, NHIF, WCF'],
-                                ['time' => '14:20', 'ref' => 'WMC-2026-001', 'tag' => 'RSK', 'color' => 'bg-rust',  'text' => 'Risk rating updated → 9 (High)'],
-                                ['time' => '15:48', 'ref' => 'WMC-2026-003', 'tag' => 'DLV', 'color' => 'bg-teal',  'text' => 'Training certificate template approved'],
-                                ['time' => '16:30', 'ref' => 'EXP-0231', 'tag' => 'EXP', 'color' => 'bg-amber', 'text' => 'Field expense approved · Per diem, fuel'],
+                                ['time' => '08:42', 'ref' => 'NHSE-2026-001', 'tag' => 'INC', 'color' => 'bg-rust',  'text' => 'Near miss reported · Mwanza Gold Plant'],
+                                ['time' => '09:15', 'ref' => 'TND-2026-003', 'tag' => 'TND', 'color' => 'bg-primary', 'text' => 'Tender stage → Won · Geita Gold Mining'],
+                                ['time' => '10:03', 'ref' => 'NHSE-2026-002', 'tag' => 'ESA', 'color' => 'bg-success',  'text' => 'OHS audit findings submitted for review'],
+                                ['time' => '11:30', 'ref' => 'INV-2026-0001', 'tag' => 'INV', 'color' => 'bg-primary', 'text' => 'Invoice sent · TZS 43,660,000'],
+                                ['time' => '13:05', 'ref' => 'NHSE-EMP-006', 'tag' => 'PAY', 'color' => 'bg-success',  'text' => 'Payroll processed · PAYE, NSSF, NHIF, WCF'],
+                                ['time' => '14:20', 'ref' => 'NHSE-2026-001', 'tag' => 'RSK', 'color' => 'bg-rust',  'text' => 'Risk rating updated → 9 (High)'],
+                                ['time' => '15:48', 'ref' => 'NHSE-2026-003', 'tag' => 'DLV', 'color' => 'bg-success',  'text' => 'Training certificate template approved'],
+                                ['time' => '16:30', 'ref' => 'EXP-0231', 'tag' => 'EXP', 'color' => 'bg-primary', 'text' => 'Field expense approved · Per diem, fuel'],
                             ];
                             // Duplicate the list so the scroll loop is seamless.
                             $feed = array_merge($entries, $entries);
@@ -180,7 +180,7 @@
     {{-- ============ MODULES ============ --}}
     <section id="modules" class="max-w-6xl mx-auto px-6 py-20">
         <div class="mb-12 max-w-2xl">
-            <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-teal mb-3">System Map</p>
+            <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-success mb-3">System Map</p>
             <h2 class="font-display text-3xl md:text-4xl font-700 leading-tight mb-4">
                 Six modules. One source of truth.
             </h2>
@@ -205,7 +205,7 @@
 
             @foreach ($modules as $module)
                 <div class="bg-paper p-7">
-                    <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-4">{{ $module['code'] }}</p>
+                    <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-primary mb-4">{{ $module['code'] }}</p>
                     <h3 class="font-display text-lg font-600 mb-2">{{ $module['title'] }}</h3>
                     <p class="text-sm text-ink/60 leading-relaxed">{!! $module['desc'] !!}</p>
                 </div>
@@ -217,7 +217,7 @@
     <section id="workflow" class="bg-ink text-paper">
         <div class="max-w-6xl mx-auto px-6 py-20">
             <div class="mb-16 max-w-2xl">
-                <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-amber mb-3">How it connects</p>
+                <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-primary mb-3">How it connects</p>
                 <h2 class="font-display text-3xl md:text-4xl font-700 leading-tight mb-4">
                     Open a project. Everything is already attached.
                 </h2>
@@ -230,9 +230,9 @@
 
             {{-- Hub --}}
             <div class="flex justify-center mb-5">
-                <div class="border border-amber px-6 py-4 text-center">
-                    <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-1">Project Record</p>
-                    <p class="font-display text-base font-600">WMC-2026-001</p>
+                <div class="border border-primary px-6 py-4 text-center">
+                    <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-primary mb-1">Project Record</p>
+                    <p class="font-display text-base font-600">NHSE-2026-001</p>
                 </div>
             </div>
 
@@ -250,7 +250,7 @@
                 @endphp
 
                 @foreach ($spokes as $spoke)
-                    <div class="spoke relative border border-paper/15 px-4 py-5 text-center hover:border-amber/60 transition-colors">
+                    <div class="spoke relative border border-paper/15 px-4 py-5 text-center hover:border-primary/60 transition-colors">
                         <p class="font-mono text-[12px] uppercase tracking-[0.12em] text-paper/80">{{ $spoke }}</p>
                     </div>
                 @endforeach
@@ -262,7 +262,7 @@
     <section id="payroll" class="max-w-6xl mx-auto px-6 py-20">
         <div class="grid md:grid-cols-2 gap-12 items-center">
             <div>
-                <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-teal mb-3">Built for Tanzania</p>
+                <p class="font-mono text-[12px] uppercase tracking-[0.25em] text-success mb-3">Built for Tanzania</p>
                 <h2 class="font-display text-3xl md:text-4xl font-700 leading-tight mb-4">
                     Payroll that already knows<br>PAYE, NSSF, NHIF, and WCF.
                 </h2>
@@ -306,7 +306,7 @@
                     </div>
                     <div class="flex justify-between py-4 font-display text-base font-600">
                         <dt>Net salary</dt>
-                        <dd class="text-teal">TZS 1,650,000</dd>
+                        <dd class="text-success">TZS 1,650,000</dd>
                     </div>
                 </dl>
             </div>
@@ -323,14 +323,14 @@
                 Sign in to your workspace, or talk to us about onboarding your team.
             </p>
             <a href="{{ url('/admin') }}"
-               class="font-mono text-[13px] uppercase tracking-[0.12em] bg-amber text-ink px-6 py-3 hover:bg-amber/90 transition-colors">
+               class="font-mono text-[13px] uppercase tracking-[0.12em] bg-primary text-white px-6 py-3 hover:bg-primary/90 transition-colors">
                 Sign in to your workspace
             </a>
         </div>
         <div class="border-t border-linedark">
             <div class="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-paper/40">
-                <span>PortalHSE &middot; Built by Webmaster Crew</span>
-                <span>&copy; {{ date('Y') }} &mdash; Dar es Salaam, Tanzania</span>
+                <span>NovarexHSE &middot; Built by Webmaster Crew</span>
+                <span>&copy; {{ date('Y') }} &mdash; Mwanza, Tanzania</span>
             </div>
         </div>
     </footer>
