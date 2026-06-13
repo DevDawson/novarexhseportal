@@ -44,10 +44,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
 
             ->widgets([
-                StatsOverview::class,
+                IncidentSeverityChart::class,
                 RevenueVsExpensesChart::class,
                 Widgets\AccountWidget::class,
-                IncidentSeverityChart::class,
+                StatsOverview::class,
                 ExpiringDocumentsWidget::class,
             ])
             ->middleware([
