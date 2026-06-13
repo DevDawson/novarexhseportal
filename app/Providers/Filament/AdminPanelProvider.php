@@ -21,6 +21,10 @@ use App\Filament\Widgets\StatsOverview;
 use App\Filament\Widgets\RevenueVsExpensesChart;
 use App\Filament\Widgets\IncidentSeverityChart;
 use App\Filament\Widgets\ExpiringDocumentsWidget;
+use App\Filament\Widgets\HseKpiOverview;
+use App\Filament\Widgets\IncidentTrendChart;
+use App\Filament\Widgets\OpenCorrectiveActionsWidget;
+use App\Filament\Widgets\ProjectSafetyPerformanceWidget;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -37,19 +41,21 @@ class AdminPanelProvider extends PanelProvider
                 'success' => \Filament\Support\Colors\Color::Green,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([
-                Pages\Dashboard::class,
-            ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-
-            ->widgets([
-                IncidentSeverityChart::class,
-                RevenueVsExpensesChart::class,
-                // Widgets\AccountWidget::class,
-                StatsOverview::class,
-                ExpiringDocumentsWidget::class,
-            ])
+->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+->pages([
+    Pages\Dashboard::class,
+])
+// ->discoverWidgets(...)  <- ondoa hii mstari
+->widgets([
+    StatsOverview::class,
+    HseKpiOverview::class,
+    RevenueVsExpensesChart::class,
+    IncidentSeverityChart::class,
+    IncidentTrendChart::class,
+    ExpiringDocumentsWidget::class,
+    OpenCorrectiveActionsWidget::class,
+    ProjectSafetyPerformanceWidget::class,
+])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

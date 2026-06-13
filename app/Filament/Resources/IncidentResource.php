@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\IncidentResource\Pages;
 use App\Models\Incident;
+use App\Services\RiskScoringService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -88,16 +89,37 @@ class IncidentResource extends Resource
                         ->required()
                         ->native(false),
 
-                    Forms\Components\Radio::make('severity')
-                        ->label('Risk / Severity Level')
-                        ->options([
-                            'low' => 'Low',
-                            'medium' => 'Medium',
-                            'high' => 'High',
-                            'critical' => 'Critical',
-                        ])
-                        ->inline()
-                        ->required(),
+                    Forms\Components\Grid::make(3)->schema([
+                        Forms\Components\Select::make('likelihood')
+                            ->label('Likelihood (L)')
+                            ->options(RiskScoringService::ratingOptions())
+                            ->default(0)
+                            ->required()
+                            ->native(false)
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::recalculateRisk($get, $set)),
+
+                        Forms\Components\Select::make('impact')
+                            ->label('Impact / Severity (I)')
+                            ->options(RiskScoringService::ratingOptions())
+                            ->default(0)
+                            ->required()
+                            ->native(false)
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::recalculateRisk($get, $set)),
+
+                        Forms\Components\Placeholder::make('risk_score_preview')
+                            ->label('Risk Score (R = L x I)')
+                            ->content(function (Forms\Get $get) {
+                                $score = RiskScoringService::score((int) $get('likelihood'), (int) $get('impact'));
+                                $level = RiskScoringService::level($score);
+
+                                return "{$score} / 25 - ".ucfirst($level);
+                            }),
+                    ]),
+
+                    Forms\Components\Hidden::make('severity')->default('low'),
+                    Forms\Components\Hidden::make('risk_score')->default(0),
 
                     Forms\Components\Textarea::make('description')
                         ->label('What happened?')
@@ -167,12 +189,12 @@ class IncidentResource extends Resource
                         'danger' => ['lost_time', 'fatality'],
                     ]),
 
-                Tables\Columns\BadgeColumn::make('severity')
-                    ->colors([
-                        'success' => 'low',
-                        'warning' => 'medium',
-                        'danger' => ['high', 'critical'],
-                    ]),
+                Tables\Columns\TextColumn::make('risk_score')
+                    ->label('Risk Score (LxI)')
+                    ->badge()
+                    ->formatStateUsing(fn (int $state, Incident $record): string => "{$state}/25 - ".ucfirst($record->risk_level))
+                    ->color(fn (int $state) => RiskScoringService::colorForScore($state))
+                    ->sortable(),
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
@@ -215,6 +237,19 @@ class IncidentResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * Recalculate the live Risk Score / Level preview and keep the
+     * hidden severity + risk_score fields in sync (also recomputed
+     * authoritatively in Incident::booted() on save).
+     */
+    protected static function recalculateRisk(Forms\Get $get, Forms\Set $set): void
+    {
+        $score = RiskScoringService::score((int) $get('likelihood'), (int) $get('impact'));
+
+        $set('risk_score', $score);
+        $set('severity', RiskScoringService::level($score));
     }
 
     public static function getPages(): array

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ProjectResource\RelationManagers;
 
+use App\Models\Risk;
+use App\Services\RiskScoringService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -46,36 +48,29 @@ class RisksRelationManager extends RelationManager
                     ->native(false),
 
                 Forms\Components\Select::make('likelihood')
-                    ->label('Likelihood (1-5)')
-                    ->options(array_combine(range(1, 5), range(1, 5)))
+                    ->label('Likelihood (L)')
+                    ->options(RiskScoringService::ratingOptions())
+                    ->default(0)
                     ->required()
                     ->native(false)
                     ->live(),
 
                 Forms\Components\Select::make('severity')
-                    ->label('Severity (1-5)')
-                    ->options(array_combine(range(1, 5), range(1, 5)))
+                    ->label('Impact / Severity (I)')
+                    ->options(RiskScoringService::ratingOptions())
+                    ->default(0)
                     ->required()
                     ->native(false)
                     ->live(),
             ]),
 
             Forms\Components\Placeholder::make('risk_rating_preview')
-                ->label('Risk Rating (Likelihood x Severity)')
+                ->label('Risk Score (R = L x I) / Risk Level')
                 ->content(function (Forms\Get $get) {
-                    $likelihood = (int) ($get('likelihood') ?? 0);
-                    $severity = (int) ($get('severity') ?? 0);
-                    $rating = $likelihood * $severity;
+                    $rating = RiskScoringService::score((int) $get('likelihood'), (int) $get('severity'));
+                    $level = RiskScoringService::level($rating);
 
-                    $level = match (true) {
-                        $rating >= 15 => 'Critical',
-                        $rating >= 8 => 'High',
-                        $rating >= 4 => 'Medium',
-                        $rating > 0 => 'Low',
-                        default => '-',
-                    };
-
-                    return "{$rating} ({$level})";
+                    return "{$rating} / 25 - ".ucfirst($level);
                 }),
 
             Forms\Components\Textarea::make('mitigation_measures')
@@ -123,14 +118,10 @@ class RisksRelationManager extends RelationManager
                     ]),
 
                 Tables\Columns\TextColumn::make('risk_rating')
-                    ->label('Rating')
+                    ->label('Risk Score (LxI)')
                     ->badge()
-                    ->color(fn (int $state): string => match (true) {
-                        $state >= 15 => 'danger',
-                        $state >= 8 => 'warning',
-                        $state >= 4 => 'info',
-                        default => 'success',
-                    })
+                    ->formatStateUsing(fn (int $state, Risk $record): string => "{$state}/25 - ".ucfirst($record->risk_level))
+                    ->color(fn (int $state) => RiskScoringService::colorForScore($state))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('riskOwner.name')

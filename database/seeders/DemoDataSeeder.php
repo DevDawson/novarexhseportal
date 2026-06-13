@@ -257,11 +257,11 @@ class DemoDataSeeder extends Seeder
         // 7. Incidents (HSE)
         // ------------------------------------------------------------
         $incidents = [
-            ['project' => $projects[0], 'type' => 'near_miss', 'severity' => 'low', 'desc' => 'Loose scaffolding plank noticed near sample collection point, corrected immediately.'],
-            ['project' => $projects[0], 'type' => 'first_aid', 'severity' => 'low', 'desc' => 'Minor cut on hand while handling sampling equipment - first aid administered on site.'],
-            ['project' => $projects[1], 'type' => 'environmental', 'severity' => 'medium', 'desc' => 'Small oil spill (less than 5L) observed near generator area, contained with absorbent pads.'],
-            ['project' => $projects[1], 'type' => 'property_damage', 'severity' => 'medium', 'desc' => 'Vehicle reversing damaged a perimeter fence panel at the terminal site.'],
-            ['project' => null, 'type' => 'near_miss', 'severity' => 'high', 'desc' => 'Office electrical wiring fault caused minor smoke - building evacuated as precaution.'],
+            ['project' => $projects[0], 'type' => 'near_miss', 'likelihood' => 1, 'impact' => 2, 'desc' => 'Loose scaffolding plank noticed near sample collection point, corrected immediately.'],
+            ['project' => $projects[0], 'type' => 'first_aid', 'likelihood' => 2, 'impact' => 2, 'desc' => 'Minor cut on hand while handling sampling equipment - first aid administered on site.'],
+            ['project' => $projects[1], 'type' => 'environmental', 'likelihood' => 2, 'impact' => 3, 'desc' => 'Small oil spill (less than 5L) observed near generator area, contained with absorbent pads.'],
+            ['project' => $projects[1], 'type' => 'property_damage', 'likelihood' => 3, 'impact' => 3, 'desc' => 'Vehicle reversing damaged a perimeter fence panel at the terminal site.'],
+            ['project' => null, 'type' => 'near_miss', 'likelihood' => 2, 'impact' => 5, 'desc' => 'Office electrical wiring fault caused minor smoke - building evacuated as precaution.'],
         ];
 
         foreach ($incidents as $inc) {
@@ -271,7 +271,8 @@ class DemoDataSeeder extends Seeder
                 'incident_date' => now()->subDays(rand(1, 60)),
                 'location' => $inc['project']?->location ?? 'Head Office, Dar es Salaam',
                 'incident_type' => $inc['type'],
-                'severity' => $inc['severity'],
+                'likelihood' => $inc['likelihood'],
+                'impact' => $inc['impact'],
                 'description' => $inc['desc'],
                 'immediate_action' => 'Area secured and supervisor notified.',
                 'status' => collect(['open', 'investigating', 'closed'])->random(),
@@ -378,6 +379,7 @@ class DemoDataSeeder extends Seeder
 
             Payroll::create([
                 'staff_id' => $staff->id,
+                'employment_type' => $staff->employment_type,
                 'payroll_period' => $period,
                 'basic_salary' => $staff->basic_salary,
                 'allowances' => $allowances,

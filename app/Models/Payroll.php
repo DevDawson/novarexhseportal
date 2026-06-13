@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AttendanceCalculationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,9 +15,15 @@ class Payroll extends Model
 
     protected $fillable = [
         'staff_id',
+        'employment_type',
         'payroll_period',
         'basic_salary',
         'allowances',
+        'hours_worked',
+        'days_worked',
+        'overtime_hours',
+        'overtime_pay',
+        'bonus',
         'gross_salary',
         'paye',
         'nssf',
@@ -24,6 +31,9 @@ class Payroll extends Model
         'wcf',
         'nhif',
         'other_deductions',
+        'loan_deduction',
+        'advance_deduction',
+        'withholding_tax',
         'net_salary',
         'payment_status',
         'payment_date',
@@ -34,6 +44,11 @@ class Payroll extends Model
         'payroll_period' => 'date',
         'basic_salary' => 'decimal:2',
         'allowances' => 'decimal:2',
+        'hours_worked' => 'decimal:2',
+        'days_worked' => 'decimal:2',
+        'overtime_hours' => 'decimal:2',
+        'overtime_pay' => 'decimal:2',
+        'bonus' => 'decimal:2',
         'gross_salary' => 'decimal:2',
         'paye' => 'decimal:2',
         'nssf' => 'decimal:2',
@@ -41,6 +56,9 @@ class Payroll extends Model
         'wcf' => 'decimal:2',
         'nhif' => 'decimal:2',
         'other_deductions' => 'decimal:2',
+        'loan_deduction' => 'decimal:2',
+        'advance_deduction' => 'decimal:2',
+        'withholding_tax' => 'decimal:2',
         'net_salary' => 'decimal:2',
         'payment_date' => 'date',
     ];
@@ -144,29 +162,137 @@ class Payroll extends Model
     }
 
     /**
-     * Auto-calculate gross_salary and net_salary whenever a payroll
-     * record is being saved.
+     * Pull total Hours Worked, Days Worked (present days), and Overtime
+     * Hours from the Attendance log for the given staff member and
+     * payroll period (month). Used to pre-fill hours_worked/days_worked/
+     * overtime_hours - the Accountant can still override these manually
+     * before saving.
      *
-     * This is intentionally lightweight: it derives gross_salary from
-     * basic_salary + allowances, and net_salary from gross_salary minus
-     * all deduction columns. The actual PAYE/NSSF/WCF/NHIF figures can
-     * either be:
-     *   - left as entered manually on the Filament form, or
-     *   - pre-filled via Payroll::calculateStatutoryDeductions() in the
-     *     Filament form's afterStateUpdated()/mutateFormDataBeforeCreate()
-     *     hooks, then saved as-is here.
+     * @return array{hours_worked: float, days_worked: float, overtime_hours: float}
+     */
+    public static function pullAttendanceTotals(int $staffId, \Illuminate\Support\Carbon|string $payrollPeriod): array
+    {
+        $period = \Illuminate\Support\Carbon::parse($payrollPeriod);
+
+        $totals = Attendance::query()
+            ->where('staff_id', $staffId)
+            ->whereYear('attendance_date', $period->year)
+            ->whereMonth('attendance_date', $period->month)
+            ->selectRaw("
+                COALESCE(SUM(hours_worked), 0) as total_hours,
+                COALESCE(SUM(overtime_hours), 0) as total_overtime,
+                COALESCE(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END), 0) as days_present
+            ")
+            ->first();
+
+        return [
+            'hours_worked' => round((float) $totals->total_hours, 2),
+            'days_worked' => round((float) $totals->days_present, 2),
+            'overtime_hours' => round((float) $totals->total_overtime, 2),
+        ];
+    }
+
+    /**
+     * Calculate gross pay based on employment type, following the
+     * formulas in the Payroll & HR Module specification:
+     *
+     *   Permanent / Contract / Intern:
+     *     Gross = Basic Salary + Allowances + Bonus + Overtime Pay
+     *
+     *   Part-Time:
+     *     Gross = (Hours Worked x Hourly Rate) + Overtime Pay
+     *
+     *   Casual:
+     *     Gross = (Days Worked x Daily Rate) + Overtime Pay
+     *
+     *   Consultant:
+     *     Gross = Contract Amount (Overtime not applicable)
+     *
+     * @param  array{
+     *     basic_salary?: float, allowances?: float, bonus?: float, overtime_pay?: float,
+     *     hours_worked?: float, hourly_rate?: float,
+     *     days_worked?: float, daily_rate?: float,
+     *     contract_amount?: float,
+     * } $inputs
+     */
+    public static function calculateGrossPay(string $employmentType, array $inputs): float
+    {
+        $overtimePay = (float) ($inputs['overtime_pay'] ?? 0);
+
+        return match ($employmentType) {
+            'part_time' => round(
+                ((float) ($inputs['hours_worked'] ?? 0) * (float) ($inputs['hourly_rate'] ?? 0)) + $overtimePay,
+                2
+            ),
+            'casual' => round(
+                ((float) ($inputs['days_worked'] ?? 0) * (float) ($inputs['daily_rate'] ?? 0)) + $overtimePay,
+                2
+            ),
+            'consultant' => round((float) ($inputs['contract_amount'] ?? 0), 2),
+            default => round(
+                (float) ($inputs['basic_salary'] ?? 0)
+                + (float) ($inputs['allowances'] ?? 0)
+                + (float) ($inputs['bonus'] ?? 0)
+                + $overtimePay,
+                2
+            ),
+        };
+    }
+
+    /**
+     * Auto-calculate gross_salary and net_salary whenever a payroll
+     * record is being saved. The formula branches on employment_type:
+     *
+     *   - Consultant: net = gross - withholding_tax (no PAYE/NSSF/NHIF)
+     *   - All others: net = gross - (PAYE + NSSF + NHIF + loan + advance + other)
+     *
+     * overtime_pay is recalculated here too (Overtime_Hours x Hourly_Rate x 1.5),
+     * using the rate captured at save time via the 'hourly_rate' attribute
+     * if it was set on the model (see PayrollResource/RelationManager forms,
+     * which pass it through as a non-persisted form value before saving).
      */
     protected static function booted(): void
     {
         static::saving(function (Payroll $payroll) {
-            $payroll->gross_salary = round(
-                (float) $payroll->basic_salary + (float) $payroll->allowances,
-                2
-            );
+            $staff = $payroll->staff;
+
+            $hourlyRate = (float) ($staff?->hourly_rate ?? 0);
+            $dailyRate = (float) ($staff?->daily_rate ?? 0);
+            $contractAmount = (float) ($staff?->contract_amount ?? 0);
+
+            // Overtime pay applies to Permanent, Part-Time, and Casual staff
+            // who have an hourly_rate recorded (Consultants are excluded).
+            if ($payroll->employment_type !== 'consultant' && (float) $payroll->overtime_hours > 0 && $hourlyRate > 0) {
+                $payroll->overtime_pay = AttendanceCalculationService::calculateOvertimePay(
+                    (float) $payroll->overtime_hours,
+                    $hourlyRate,
+                );
+            }
+
+            $payroll->gross_salary = self::calculateGrossPay($payroll->employment_type, [
+                'basic_salary' => $payroll->basic_salary,
+                'allowances' => $payroll->allowances,
+                'bonus' => $payroll->bonus,
+                'overtime_pay' => $payroll->overtime_pay,
+                'hours_worked' => $payroll->hours_worked,
+                'hourly_rate' => $hourlyRate,
+                'days_worked' => $payroll->days_worked,
+                'daily_rate' => $dailyRate,
+                'contract_amount' => $contractAmount,
+            ]);
+
+            if ($payroll->employment_type === 'consultant') {
+                // Net_Payment = Contract_Amount - Withholding_Tax
+                $payroll->net_salary = round($payroll->gross_salary - (float) $payroll->withholding_tax, 2);
+
+                return;
+            }
 
             $totalDeductions = (float) $payroll->paye
                 + (float) $payroll->nssf
                 + (float) $payroll->nhif
+                + (float) $payroll->loan_deduction
+                + (float) $payroll->advance_deduction
                 + (float) $payroll->other_deductions;
 
             $payroll->net_salary = round($payroll->gross_salary - $totalDeductions, 2);

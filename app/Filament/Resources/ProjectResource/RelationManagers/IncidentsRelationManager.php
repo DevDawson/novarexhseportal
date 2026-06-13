@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ProjectResource\RelationManagers;
 
+use App\Models\Incident;
+use App\Services\RiskScoringService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -50,16 +52,38 @@ class IncidentsRelationManager extends RelationManager
                     ])
                     ->required()
                     ->native(false),
+            ]),
 
-                Forms\Components\Select::make('severity')
-                    ->options([
-                        'low' => 'Low',
-                        'medium' => 'Medium',
-                        'high' => 'High',
-                        'critical' => 'Critical',
-                    ])
+            Forms\Components\Grid::make(3)->schema([
+                Forms\Components\Select::make('likelihood')
+                    ->label('Likelihood (L)')
+                    ->options(RiskScoringService::ratingOptions())
+                    ->default(0)
                     ->required()
-                    ->native(false),
+                    ->native(false)
+                    ->live()
+                    ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::recalculateRisk($get, $set)),
+
+                Forms\Components\Select::make('impact')
+                    ->label('Impact / Severity (I)')
+                    ->options(RiskScoringService::ratingOptions())
+                    ->default(0)
+                    ->required()
+                    ->native(false)
+                    ->live()
+                    ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::recalculateRisk($get, $set)),
+
+                Forms\Components\Placeholder::make('risk_score_preview')
+                    ->label('Risk Score (R = L x I)')
+                    ->content(function (Forms\Get $get) {
+                        $score = RiskScoringService::score((int) $get('likelihood'), (int) $get('impact'));
+                        $level = RiskScoringService::level($score);
+
+                        return "{$score} / 25 - ".ucfirst($level);
+                    }),
+
+                Forms\Components\Hidden::make('severity')->default('low'),
+                Forms\Components\Hidden::make('risk_score')->default(0),
             ]),
 
             Forms\Components\Textarea::make('description')
@@ -102,12 +126,11 @@ class IncidentsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('location'),
 
-                Tables\Columns\BadgeColumn::make('severity')
-                    ->colors([
-                        'success' => 'low',
-                        'warning' => 'medium',
-                        'danger' => ['high', 'critical'],
-                    ]),
+                Tables\Columns\TextColumn::make('risk_score')
+                    ->label('Risk (LxI)')
+                    ->badge()
+                    ->formatStateUsing(fn (int $state, Incident $record): string => "{$state}/25 - ".ucfirst($record->risk_level))
+                    ->color(fn (int $state) => RiskScoringService::colorForScore($state)),
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
@@ -126,5 +149,18 @@ class IncidentsRelationManager extends RelationManager
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ]);
+    }
+
+    /**
+     * Recalculate the live Risk Score / Level preview and keep the
+     * hidden severity + risk_score fields in sync (also recomputed
+     * authoritatively in Incident::booted() on save).
+     */
+    protected static function recalculateRisk(Forms\Get $get, Forms\Set $set): void
+    {
+        $score = RiskScoringService::score((int) $get('likelihood'), (int) $get('impact'));
+
+        $set('risk_score', $score);
+        $set('severity', RiskScoringService::level($score));
     }
 }

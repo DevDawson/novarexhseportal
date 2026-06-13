@@ -68,3 +68,58 @@ just expressed differently - pick whichever framing is clearer for MD.
 - `IncidentSeverityChart` covers all-time incident counts by severity.
   To scope to "this year" or "this month", add a `whereYear()` /
   `whereMonth()` filter on `Incident::query()` in `getData()`.
+
+## 7. HSE KPI Widgets (added in v2, #4)
+
+```
+app/Services/HseKpiService.php
+app/Filament/Widgets/HseKpiOverview.php
+app/Filament/Widgets/IncidentTrendChart.php
+app/Filament/Widgets/OpenCorrectiveActionsWidget.php
+app/Filament/Widgets/ProjectSafetyPerformanceWidget.php
+```
+
+Register alongside the existing widgets:
+```php
+use App\Filament\Widgets\HseKpiOverview;
+use App\Filament\Widgets\IncidentTrendChart;
+use App\Filament\Widgets\OpenCorrectiveActionsWidget;
+use App\Filament\Widgets\ProjectSafetyPerformanceWidget;
+
+->widgets([
+    StatsOverview::class,
+    HseKpiOverview::class,
+    RevenueVsExpensesChart::class,
+    IncidentSeverityChart::class,
+    IncidentTrendChart::class,
+    ExpiringDocumentsWidget::class,
+    OpenCorrectiveActionsWidget::class,
+    ProjectSafetyPerformanceWidget::class,
+])
+```
+
+### What these cover from the client spec
+- **Total Incidents, Near Misses, LTIs, Environmental Incidents**: `HseKpiOverview` (year-to-date).
+- **LTIFR / TRIR**: calculated as `(count x 200,000) / Total Hours Worked`, using
+  the sum of `Attendance.hours_worked` for the year. Adjust
+  `HseKpiService::RATE_BASE_HOURS` to 1,000,000 if NOVAREX needs the ILO
+  convention instead of OSHA.
+- **Open / Overdue Corrective Actions**: `OpenCorrectiveActionsWidget` lists
+  incidents with status `open`/`investigating`, flags any open longer than
+  `HseKpiService::OVERDUE_THRESHOLD_DAYS` (30 days) in red. This is a
+  proxy based on Incident status - a dedicated Corrective Actions module
+  (separate table with due dates/assignees) would give more precise
+  tracking if needed later.
+- **Root Cause Trends**: `IncidentTrendChart` shows a stacked bar chart of
+  incidents by type group over the last 6 months (root_cause is currently
+  free text, so this groups by incident_type as the closest structured proxy).
+- **Department Performance**: `ProjectSafetyPerformanceWidget` reports
+  per-Project safety performance (incidents, open count, average risk
+  score) - see the NOTE in that file regarding the Project vs Department
+  distinction.
+
+### Accuracy depends on Attendance data
+LTIFR/TRIR will read as 0 until staff start logging Attendance records
+(#1) with `hours_worked` populated - make sure HR/site supervisors are
+using the Attendance tab regularly for these KPIs to be meaningful.
+
