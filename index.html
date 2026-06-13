@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novarex HSE Portal | Under Development</title>
+    <!-- Google Fonts for Professional Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 - Industrial Tech look */
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #1e293b; /* Slate 800 */
+            border: 1px solid #334155;
+            padding: 40px 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.8s ease-out;
+        }
+
+        /* HSE Industrial Green / Safety Accent */
+        .brand-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #10b981; /* Safety Green */
+            margin-bottom: 10px;
+        }
+
+        .portal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        /* Safety Cone Animated Icon */
+        .icon-container {
+            margin-bottom: 25px;
+            display: inline-block;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        .status-badge {
+            background-color: rgba(245, 158, 11, 0.1); /* Amber/Warning tint */
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Progress Bar */
+        .progress-bg {
+            background-color: #334155;
+            border-radius: 10px;
+            height: 6px;
+            width: 100%;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            width: 75%; /* Set your current deployment progress here */
+            border-radius: 10px;
+        }
+
+        .notice {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="brand-name">Novarex</div>
+        <div class="portal-title">HSE Management Portal</div>
+        
+        <div class="icon-container">
+            <!-- Professional SVG Safety Cone Icon -->
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L3 20H21L12 2Z" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 14H16" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+                <path d="M10 10H14" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <br>
+        <span class="status-badge">System Under Development</span>
+        
+        <p>We are currently configuring the Health, Safety, and Environment portal to ensure the highest standards of workplace compliance. Full access will be available shortly.</p>
+        
+        <div class="progress-bg">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="notice">Authorized Personnel Only • Novarex © 2026</div>
+    </div>
+
+</body>
+</html>
