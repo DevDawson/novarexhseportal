@@ -96,12 +96,6 @@ class IncidentResource extends Resource
                             'high' => 'High',
                             'critical' => 'Critical',
                         ])
-                        ->colors([
-                            'low' => 'success',
-                            'medium' => 'warning',
-                            'high' => 'danger',
-                            'critical' => 'danger',
-                        ])
                         ->inline()
                         ->required(),
 
