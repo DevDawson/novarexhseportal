@@ -30,6 +30,9 @@ class Staff extends Model
         'employment_type',
         'date_joined',
         'basic_salary',
+        'hourly_rate',
+        'daily_rate',
+        'contract_amount',
         'bank_name',
         'bank_account_no',
         'status',
@@ -39,6 +42,9 @@ class Staff extends Model
         'date_of_birth' => 'date',
         'date_joined' => 'date',
         'basic_salary' => 'decimal:2',
+        'hourly_rate' => 'decimal:2',
+        'daily_rate' => 'decimal:2',
+        'contract_amount' => 'decimal:2',
     ];
 
     /**
@@ -71,6 +77,14 @@ class Staff extends Model
     public function payrolls(): HasMany
     {
         return $this->hasMany(Payroll::class);
+    }
+
+    /**
+     * All attendance records for this staff member.
+     */
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
     }
 
     /**
