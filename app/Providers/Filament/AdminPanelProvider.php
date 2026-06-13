@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 IncidentSeverityChart::class,
                 RevenueVsExpensesChart::class,
-                Widgets\AccountWidget::class,
+                // Widgets\AccountWidget::class,
                 StatsOverview::class,
                 ExpiringDocumentsWidget::class,
             ])
