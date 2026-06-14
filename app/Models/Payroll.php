@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\AttendanceCalculationService;
+use App\Services\JournalPostingService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -299,6 +300,39 @@ class Payroll extends Model
                 + (float) $payroll->other_deductions;
 
             $payroll->net_salary = round($payroll->gross_salary - $totalDeductions, 2);
+        });
+
+        /**
+         * Accounting Journal Posting (DR/CR), per the Payroll & HR
+         * Module spec section 8:
+         *
+         *   payment_status -> 'approved': post the Payroll Approval
+         *     entry (DR Staff Salary Expense, CR Salary Payable +
+         *     statutory payables). See JournalPostingService.
+         *
+         *   payment_status -> 'paid': post the Salary Payment entry
+         *     (DR Salary Payable, CR Bank).
+         *
+         *   payment_status reverted to 'pending' from 'approved'/'paid':
+         *     remove the corresponding automatic journal entries so the
+         *     ledger doesn't retain postings for a payroll that's no
+         *     longer approved/paid.
+         *
+         * Both posting methods are idempotent (safe to call even if
+         * already posted), so re-saving a record with an unchanged
+         * status does nothing extra.
+         */
+        static::saved(function (Payroll $payroll) {
+            if (! $payroll->wasChanged('payment_status')) {
+                return;
+            }
+
+            match ($payroll->payment_status) {
+                'approved' => JournalPostingService::postPayrollApproval($payroll),
+                'paid' => JournalPostingService::postPayrollPayment($payroll),
+                'pending' => JournalPostingService::reversePayrollPostings($payroll),
+                default => null,
+            };
         });
     }
 }

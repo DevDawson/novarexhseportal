@@ -492,4 +492,35 @@ class ManagementReportsPage extends Page
                 );
             });
     }
+
+    // ============================================================
+    // BONUS: Trial Balance (Accounting Journal - #8)
+    // ============================================================
+    public function trialBalanceAction(): Action
+    {
+        return Action::make('trialBalance')
+            ->label('Trial Balance')
+            ->icon('heroicon-o-scale')
+            ->color('primary')
+            ->requiresConfirmation()
+            ->modalDescription('Generate a Trial Balance as of today, based on all posted journal entries (including automatic Payroll postings).')
+            ->action(function (): Response {
+                $data = ManagementReportService::trialBalance();
+
+                $pdf = Pdf::loadView('filament.pdf.reports.trial-balance', [
+                    'rows' => $this->sanitizeUtf8($data['rows']),
+                    'totalDebit' => $data['total_debit'],
+                    'totalCredit' => $data['total_credit'],
+                    'asOf' => now()->format('d M Y'),
+                ])->setPaper('a4', 'portrait');
+
+                $filename = 'trial-balance-'.now()->format('Y-m-d').'.pdf';
+
+                return response()->streamDownload(
+                    fn () => print($pdf->output()),
+                    $filename,
+                    ['Content-Type' => 'application/pdf'],
+                );
+            });
+    }
 }

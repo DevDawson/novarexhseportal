@@ -373,6 +373,37 @@ class ManagementReportService
     }
 
     // =========================================================
+    // BONUS: TRIAL BALANCE (Chart of Accounts ledger balances)
+    // =========================================================
+    public static function trialBalance(): array
+    {
+        $accounts = \App\Models\Account::where('is_active', true)
+            ->orderBy('code')
+            ->get()
+            ->map(function (\App\Models\Account $account) {
+                $balance = $account->balance();
+
+                return [
+                    'code' => $account->code,
+                    'name' => $account->name,
+                    'type' => ucfirst($account->type),
+                    // Trial balance convention: positive balance shown on
+                    // the side matching the account's normal_balance.
+                    'debit' => $account->normal_balance === 'debit' && $balance > 0 ? $balance : 0,
+                    'credit' => $account->normal_balance === 'credit' && $balance > 0 ? $balance : 0,
+                ];
+            })
+            ->filter(fn ($row) => $row['debit'] != 0 || $row['credit'] != 0)
+            ->values();
+
+        return [
+            'rows' => $accounts,
+            'total_debit' => $accounts->sum('debit'),
+            'total_credit' => $accounts->sum('credit'),
+        ];
+    }
+
+    // =========================================================
     // CSV EXPORT HELPER
     // =========================================================
     public static function toCsv(Collection|array $data, string $filename): \Symfony\Component\HttpFoundation\Response

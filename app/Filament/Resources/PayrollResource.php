@@ -369,6 +369,7 @@ class PayrollResource extends Resource
                     Forms\Components\Select::make('payment_status')
                         ->options([
                             'pending' => 'Pending',
+                            'approved' => 'Approved',
                             'paid' => 'Paid',
                         ])
                         ->required()
@@ -453,6 +454,7 @@ class PayrollResource extends Resource
                 Tables\Columns\BadgeColumn::make('payment_status')
                     ->colors([
                         'warning' => 'pending',
+                        'info' => 'approved',
                         'success' => 'paid',
                     ]),
             ])
