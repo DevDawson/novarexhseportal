@@ -5,6 +5,7 @@
     body { font-family: 'DejaVu Sans', sans-serif; font-size: 9px; color: #1C2127; }
     .header { margin-bottom: 10px; }
     h1 { font-size: 13px; margin: 0; color: #3B82F6; }
+    .report-title { font-size: 13px; margin: 8px 0 4px; color: #1C2127; text-transform: uppercase; letter-spacing: 0.5px; }
     h2 { font-size: 10px; color: #6B7280; margin: 2px 0 0; }
     .authority { font-size: 9px; color: #6B7280; margin: 4px 0 10px; }
     table { width: 100%; border-collapse: collapse; }
@@ -17,7 +18,8 @@
 </style></head>
 <body>
 <div class="header">
-    <h1>NovarexHSE TZ &mdash; {{ $title }}</h1>
+    @include('filament.pdf.partials.letterhead')
+<h1 class="report-title">{{ $title }}</h1>
     <h2>Period: {{ $period->format('F Y') }}</h2>
     <p class="authority">Payable to: {{ $authority }}</p>
 </div>

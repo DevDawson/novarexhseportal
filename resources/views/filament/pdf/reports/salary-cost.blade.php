@@ -4,6 +4,7 @@
 <style>
     body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; color: #1C2127; }
     h1 { font-size: 14px; margin: 0; color: #3B82F6; }
+    .report-title { font-size: 13px; margin: 8px 0 4px; color: #1C2127; text-transform: uppercase; letter-spacing: 0.5px; }
     h2 { font-size: 10px; color: #6B7280; margin: 2px 0 14px; }
 
     .section-title {
@@ -29,7 +30,8 @@
     .footer { font-size: 7px; color: #9CA3AF; text-align: center; margin-top: 14px; }
 </style></head>
 <body>
-<h1>NovarexHSE TZ - Salary Cost Report</h1>
+@include('filament.pdf.partials.letterhead')
+<h1 class="report-title">Salary Cost Report</h1>
 <h2>Period: {{ $period->format('F Y') }} &mdash; {{ $summary['staff_count'] }} staff on payroll</h2>
 
 <div class="section-title">Employee Earnings (Total Gross)</div>

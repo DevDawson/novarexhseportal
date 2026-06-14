@@ -4,6 +4,7 @@
 <style>
     body { font-family: 'DejaVu Sans', sans-serif; font-size: 9px; color: #1C2127; }
     h1 { font-size: 14px; margin: 0; color: #3B82F6; }
+    .report-title { font-size: 13px; margin: 8px 0 4px; color: #1C2127; text-transform: uppercase; letter-spacing: 0.5px; }
     h2 { font-size: 10px; color: #6B7280; margin: 2px 0 12px; }
     table { width: 100%; border-collapse: collapse; }
     th { background: #3B82F6; color: #fff; padding: 5px 4px; text-align: left; font-size: 8.5px; }
@@ -16,7 +17,8 @@
     .status-paid { color: #16A34A; font-weight: bold; }
 </style></head>
 <body>
-<h1>NovarexHSE TZ - Bank Transfer Schedule</h1>
+@include('filament.pdf.partials.letterhead')
+<h1 class="report-title">Bank Transfer Schedule</h1>
 <h2>Period: {{ $period->format('F Y') }} &mdash; {{ $rows->count() }} staff to be paid</h2>
 
 <table>

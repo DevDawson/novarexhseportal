@@ -1,78 +1,115 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Monthly Financial Summary - {{ $summary['period']->format('F Y') }}</title>
-    <style>
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 12px; color: #1f2937; }
-        h1 { font-size: 18px; margin-bottom: 0; }
-        h2 { font-size: 14px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
-        .subtitle { color: #6b7280; margin-top: 4px; margin-bottom: 16px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-        td { padding: 4px 0; border-bottom: 1px solid #f3f4f6; }
-        td.label { width: 70%; }
-        td.value { width: 30%; text-align: right; }
-        .total-row td { font-weight: bold; border-top: 1px solid #9ca3af; }
-        .header-box { display: table; width: 100%; margin-bottom: 16px; }
-        .header-cell { display: table-cell; width: 33%; text-align: center; padding: 8px; border: 1px solid #e5e7eb; }
-        .header-cell .amount { font-size: 16px; font-weight: bold; }
-        .positive { color: #16a34a; }
-        .negative { color: #dc2626; }
-    </style>
-</head>
-<body>
+<x-filament-panels::page>
 
-    {{-- Placeholder header - replace with company letterhead / logo via base64 image if needed --}}
-    <h1>{{ config('app.name', 'Webmaster Crew ERP') }}</h1>
-    <p class="subtitle">Monthly Financial Summary &mdash; {{ $summary['period']->format('F Y') }}</p>
+    <form wire:submit.prevent>
+        {{ $this->form }}
+    </form>
 
-    <div class="header-box">
-        <div class="header-cell">
-            Revenue<br>
-            <span class="amount positive">TZS {{ number_format($summary['revenue_total'], 2) }}</span>
-        </div>
-        <div class="header-cell">
-            Total Outflows<br>
-            <span class="amount negative">TZS {{ number_format($summary['total_outflows'], 2) }}</span>
-        </div>
-        <div class="header-cell">
-            Net Position<br>
-            <span class="amount {{ $summary['net_position'] >= 0 ? 'positive' : 'negative' }}">
+    @php($summary = $this->getSummary())
+
+    <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+
+        <x-filament::section>
+            <x-slot name="heading">Revenue</x-slot>
+            <p class="text-2xl font-bold text-success-600">
+                TZS {{ number_format($summary['revenue_total'], 2) }}
+            </p>
+            <p class="text-sm text-gray-500">Invoiced for {{ $summary['period']->format('F Y') }}</p>
+        </x-filament::section>
+
+        <x-filament::section>
+            <x-slot name="heading">Total Outflows</x-slot>
+            <p class="text-2xl font-bold text-danger-600">
+                TZS {{ number_format($summary['total_outflows'], 2) }}
+            </p>
+            <p class="text-sm text-gray-500">Payroll cost + Field Expenses + Petty Cash</p>
+        </x-filament::section>
+
+        <x-filament::section>
+            <x-slot name="heading">Net Position</x-slot>
+            <p class="text-2xl font-bold {{ $summary['net_position'] >= 0 ? 'text-success-600' : 'text-danger-600' }}">
                 TZS {{ number_format($summary['net_position'], 2) }}
-            </span>
-        </div>
+            </p>
+            <p class="text-sm text-gray-500">Revenue - Total Outflows</p>
+        </x-filament::section>
+
     </div>
 
-    <h2>Payroll &amp; Statutory Obligations</h2>
-    <table>
-        <tr><td class="label">Staff Paid</td><td class="value">{{ $summary['payroll']->staff_count }}</td></tr>
-        <tr><td class="label">Total Gross Salaries</td><td class="value">{{ number_format($summary['payroll']->total_gross, 2) }}</td></tr>
-        <tr><td class="label">Total Net Salaries (Take-Home)</td><td class="value">{{ number_format($summary['payroll']->total_net, 2) }}</td></tr>
-        <tr><td class="label">PAYE (TRA)</td><td class="value">{{ number_format($summary['payroll']->total_paye, 2) }}</td></tr>
-        <tr><td class="label">NSSF - Employee</td><td class="value">{{ number_format($summary['payroll']->total_nssf_employee, 2) }}</td></tr>
-        <tr><td class="label">NSSF - Employer</td><td class="value">{{ number_format($summary['payroll']->total_nssf_employer, 2) }}</td></tr>
-        <tr><td class="label">WCF</td><td class="value">{{ number_format($summary['payroll']->total_wcf, 2) }}</td></tr>
-        <tr><td class="label">NHIF</td><td class="value">{{ number_format($summary['payroll']->total_nhif, 2) }}</td></tr>
-        <tr class="total-row"><td class="label">Total Statutory Obligations</td><td class="value">{{ number_format($summary['statutory_total'], 2) }}</td></tr>
-    </table>
+    <x-filament::section class="mt-6">
+        <x-slot name="heading">Payroll & Statutory Obligations</x-slot>
 
-    <h2>Field Expenses by Category</h2>
-    <table>
-        @forelse ($summary['field_expenses_by_category'] as $category => $total)
-            <tr>
-                <td class="label">{{ ucfirst(str_replace('_', ' ', $category)) }}</td>
-                <td class="value">{{ number_format($total, 2) }}</td>
-            </tr>
-        @empty
-            <tr><td class="label" colspan="2">No approved field expenses for this period.</td></tr>
-        @endforelse
-        <tr class="total-row"><td class="label">Total Field Expenses</td><td class="value">{{ number_format($summary['field_expenses_total'], 2) }}</td></tr>
-        <tr class="total-row"><td class="label">Petty Cash Outflows</td><td class="value">{{ number_format($summary['petty_cash_total'], 2) }}</td></tr>
-    </table>
+        <table class="w-full text-sm">
+            <tbody class="divide-y divide-gray-100 dark:divide-white/10">
+                <tr>
+                    <td class="py-2">Staff Paid</td>
+                    <td class="py-2 text-right">{{ $summary['payroll']->staff_count }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2">Total Gross Salaries</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['payroll']->total_gross, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2">Total Net Salaries (Take-Home)</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['payroll']->total_net, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2">PAYE (TRA)</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['payroll']->total_paye, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2">NSSF - Employee</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['payroll']->total_nssf_employee, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2">NSSF - Employer</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['payroll']->total_nssf_employer, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2">WCF</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['payroll']->total_wcf, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="py-2">NHIF</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['payroll']->total_nhif, 2) }}</td>
+                </tr>
+                <tr class="font-semibold">
+                    <td class="py-2">Total Statutory Obligations</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['statutory_total'], 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </x-filament::section>
 
-    <p class="subtitle" style="margin-top: 32px;">
-        Generated on {{ now()->format('d M Y H:i') }} &mdash; For internal management use only.
-    </p>
+    <x-filament::section class="mt-6">
+        <x-slot name="heading">Field Expenses by Category</x-slot>
 
-</body>
-</html>
+        <table class="w-full text-sm">
+            <tbody class="divide-y divide-gray-100 dark:divide-white/10">
+                @forelse ($summary['field_expenses_by_category'] as $category => $total)
+                    <tr>
+                        <td class="py-2 capitalize">{{ str_replace('_', ' ', $category) }}</td>
+                        <td class="py-2 text-right">TZS {{ number_format($total, 2) }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td class="py-2 text-gray-500" colspan="2">No approved field expenses for this period.</td>
+                    </tr>
+                @endforelse
+                <tr class="font-semibold">
+                    <td class="py-2">Total Field Expenses</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['field_expenses_total'], 2) }}</td>
+                </tr>
+                <tr class="font-semibold">
+                    <td class="py-2">Petty Cash Outflows</td>
+                    <td class="py-2 text-right">TZS {{ number_format($summary['petty_cash_total'], 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </x-filament::section>
+
+    <div class="mt-6">
+        <x-filament::button wire:click="exportPdf" icon="heroicon-o-arrow-down-tray">
+            Export as PDF
+        </x-filament::button>
+    </div>
+
+</x-filament-panels::page>

@@ -10,6 +10,8 @@
         "filament/filament": "^3.2",
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
+        "setasign/fpdi": "^2.6",
+        "setasign/fpdi-fpdf": "^2.3",
         "spatie/laravel-permission": "^6.25"
     },
     "require-dev": {

@@ -35,10 +35,7 @@
 </head>
 <body>
 
-    <div class="header">
-        <h1>NovarexHSE TZ</h1>
-        <p>HSE &amp; Sustainability Consulting &mdash; Mwanza, Tanzania</p>
-    </div>
+    @include('filament.pdf.partials.letterhead')
 
     <div class="title">Payslip &mdash; {{ $payroll->payroll_period->format('F Y') }}</div>
 

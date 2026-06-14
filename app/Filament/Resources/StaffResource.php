@@ -191,6 +191,61 @@ class StaffResource extends Resource
                         ->label('Bank Account Number')
                         ->maxLength(255),
                 ]),
+
+            Forms\Components\Section::make('Documents')
+                ->description('Upload the staff member\'s National ID, CV, and professional certificates. Certificates uploaded below are automatically merged into a single PDF.')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\FileUpload::make('nida_card_path')
+                        ->label('NIDA Card')
+                        ->disk('public')
+                        ->directory('staff-documents/nida')
+                        ->visibility('public')
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->maxSize(5120)
+                        ->downloadable()
+                        ->openable()
+                        ->helperText('PDF or photo of the National ID card (front/back combined or single scan). Max 5MB.'),
+
+                    Forms\Components\FileUpload::make('cv_path')
+                        ->label('CV / Resume')
+                        ->disk('public')
+                        ->directory('staff-documents/cv')
+                        ->visibility('public')
+                        ->acceptedFileTypes(['application/pdf'])
+                        ->maxSize(5120)
+                        ->downloadable()
+                        ->openable()
+                        ->helperText('PDF only, max 5MB.'),
+
+                    Forms\Components\FileUpload::make('certificate_uploads')
+                        ->label('Add Certificates (multiple files)')
+                        ->disk('public')
+                        ->directory('staff-documents/certificates-source')
+                        ->visibility('public')
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->multiple()
+                        ->reorderable()
+                        ->maxSize(5120)
+                        ->dehydrated()
+                        ->columnSpanFull()
+                        ->helperText('Upload one or more certificates (PDF or photos of certificates). On save, these are merged into a single "Certificates" PDF below, in the order shown. Re-uploading replaces the merged file.'),
+
+                    Forms\Components\Placeholder::make('certificates_path_display')
+                        ->label('Merged Certificates PDF')
+                        ->columnSpanFull()
+                        ->content(function (?Staff $record) {
+                            if (! $record?->certificates_path) {
+                                return 'No merged certificates file yet - upload certificates above and save.';
+                            }
+
+                            $url = \Illuminate\Support\Facades\Storage::disk('public')->url($record->certificates_path);
+
+                            return new \Illuminate\Support\HtmlString(
+                                "<a href=\"{$url}\" target=\"_blank\" class=\"text-primary-600 underline\">Download merged certificates PDF</a>"
+                            );
+                        }),
+                ]),
         ]);
     }
 
@@ -240,6 +295,30 @@ class StaffResource extends Resource
                         'warning' => ['on_leave', 'suspended'],
                         'danger' => 'terminated',
                     ]),
+
+                Tables\Columns\TextColumn::make('documents_status')
+                    ->label('Documents')
+                    ->state(function (Staff $record): string {
+                        $present = collect([
+                            'NIDA' => $record->nida_card_path,
+                            'CV' => $record->cv_path,
+                            'Certs' => $record->certificates_path,
+                        ])->filter()->keys();
+
+                        return $present->isEmpty() ? '0/3' : $present->count().'/3 ('.$present->implode(', ').')';
+                    })
+                    ->badge()
+                    ->color(function (Staff $record) {
+                        $count = collect([$record->nida_card_path, $record->cv_path, $record->certificates_path])
+                            ->filter()->count();
+
+                        return match (true) {
+                            $count === 3 => 'success',
+                            $count === 0 => 'danger',
+                            default => 'warning',
+                        };
+                    })
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('department_id')

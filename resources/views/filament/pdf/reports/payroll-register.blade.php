@@ -4,6 +4,7 @@
 <style>
     body { font-family: 'DejaVu Sans', sans-serif; font-size: 9px; color: #1C2127; }
     h1 { font-size: 14px; margin: 0; color: #3B82F6; }
+    .report-title { font-size: 13px; margin: 8px 0 4px; color: #1C2127; text-transform: uppercase; letter-spacing: 0.5px; }
     h2 { font-size: 10px; color: #6B7280; margin: 2px 0 10px; }
     table { width: 100%; border-collapse: collapse; }
     th { background: #3B82F6; color: #fff; padding: 4px 3px; text-align: left; font-size: 8px; }
@@ -14,7 +15,8 @@
     .right { text-align: right; }
 </style></head>
 <body>
-<h1>NovarexHSE TZ &mdash; Payroll Register</h1>
+@include('filament.pdf.partials.letterhead')
+<h1 class="report-title">Payroll Register</h1>
 <h2>Period: {{ $period->format('F Y') }}</h2>
 <table>
     <thead>
