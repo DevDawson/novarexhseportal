@@ -10,8 +10,14 @@ class PayrollCalculationService
     /** NHIF contribution rate (3%) */
     public const NHIF_RATE = 0.03;
 
-    /** Default WCF employer rate (0.5% private sector). Public sector = 1%. */
+    /** WCF rate - private sector employer contribution (e.g. 0.5%) */
     public const WCF_RATE_DEFAULT = 0.005;
+
+    /**
+     * Skills Development Levy (SDL) - employer contribution paid to VETA.
+     * 4.5% of gross payroll. Not deducted from employee's net salary.
+     */
+    public const SDL_RATE = 0.045;
 
     /**
      * TRA PAYE monthly bands (TZS), effective as per the latest Finance Act.
@@ -51,6 +57,7 @@ class PayrollCalculationService
         $nssfEmployer = round($grossSalary * self::NSSF_RATE, 2);
         $nhif = round($grossSalary * self::NHIF_RATE, 2);
         $wcf = round($grossSalary * $wcfRate, 2);
+        $sdl = round($grossSalary * self::SDL_RATE, 2);
 
         // Taxable income = gross less the employee's NSSF contribution
         // (standard Tanzanian practice - NSSF is deducted before PAYE).
@@ -64,6 +71,7 @@ class PayrollCalculationService
             'nssf' => $nssfEmployee,
             'nssf_employer' => $nssfEmployer,
             'wcf' => $wcf,
+            'sdl' => $sdl,
             'nhif' => $nhif,
             'paye' => $paye,
             'net_salary' => $netSalary,

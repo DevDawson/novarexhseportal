@@ -15,7 +15,7 @@ class IncidentSeverityChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasAnyRole(['md', 'hse_staff', 'hr_director']) ?? false;
+        return auth()->user()?->hasAnyRole(['md', 'hse_staff']) ?? false;
     }
 
     protected function getData(): array

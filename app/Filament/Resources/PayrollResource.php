@@ -7,6 +7,7 @@ use App\Models\Payroll;
 use App\Models\Staff;
 use App\Services\AttendanceCalculationService;
 use App\Services\PayrollCalculationService;
+use App\Services\PayslipService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -374,6 +375,11 @@ class PayrollResource extends Resource
                         ->default('pending')
                         ->native(false),
 
+                    Forms\Components\TextInput::make('approval_reference')
+                        ->label('Approval Reference')
+                        ->maxLength(255)
+                        ->helperText('Recorded when Finance Manager / MD approves this payroll.'),
+
                     Forms\Components\DatePicker::make('payment_date')
                         ->native(false)
                         ->visible(fn (Get $get) => $get('payment_status') === 'paid'),
@@ -479,6 +485,12 @@ class PayrollResource extends Resource
                     }),
             ])
             ->actions([
+                Tables\Actions\Action::make('downloadPayslip')
+                    ->label('Payslip')
+                    ->icon('heroicon-o-document-text')
+                    ->color('gray')
+                    ->action(fn (Payroll $record) => PayslipService::download($record)),
+
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

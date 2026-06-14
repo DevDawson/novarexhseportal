@@ -5,6 +5,7 @@ namespace App\Filament\Resources\StaffResource\RelationManagers;
 use App\Models\Payroll;
 use App\Services\AttendanceCalculationService;
 use App\Services\PayrollCalculationService;
+use App\Services\PayslipService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -269,6 +270,10 @@ class PayrollsRelationManager extends RelationManager
                 Forms\Components\DatePicker::make('payment_date')
                     ->native(false)
                     ->visible(fn (Get $get) => $get('payment_status') === 'paid'),
+
+                Forms\Components\TextInput::make('approval_reference')
+                    ->label('Approval Reference')
+                    ->maxLength(255),
             ]),
         ]);
     }
@@ -395,6 +400,12 @@ class PayrollsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
+                Tables\Actions\Action::make('downloadPayslip')
+                    ->label('Payslip')
+                    ->icon('heroicon-o-document-text')
+                    ->color('gray')
+                    ->action(fn (Payroll $record) => PayslipService::download($record)),
+
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn () => auth()->user()?->hasRole('md') ?? false),

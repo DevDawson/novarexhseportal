@@ -29,6 +29,7 @@ class Payroll extends Model
         'nssf',
         'nssf_employer',
         'wcf',
+        'sdl',
         'nhif',
         'other_deductions',
         'loan_deduction',
@@ -36,6 +37,7 @@ class Payroll extends Model
         'withholding_tax',
         'net_salary',
         'payment_status',
+        'approval_reference',
         'payment_date',
         'payment_reference',
     ];
@@ -54,6 +56,7 @@ class Payroll extends Model
         'nssf' => 'decimal:2',
         'nssf_employer' => 'decimal:2',
         'wcf' => 'decimal:2',
+        'sdl' => 'decimal:2',
         'nhif' => 'decimal:2',
         'other_deductions' => 'decimal:2',
         'loan_deduction' => 'decimal:2',

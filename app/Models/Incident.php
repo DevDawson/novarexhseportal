@@ -6,6 +6,7 @@ use App\Services\RiskScoringService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Incident extends Model
 {
@@ -27,14 +28,40 @@ class Incident extends Model
         'corrective_actions',
         'status',
         'closed_date',
+        // Investigation
+        'investigation_method',
+        'investigation_status',
+        'investigation_responsible_person',
+        'investigation_target_date',
+        // 5 Whys
+        'why_1', 'why_2', 'why_3', 'why_4', 'why_5',
+        // Fishbone
+        'fishbone_data',
+        // TapRooT
+        'taproot_timeline',
+        'taproot_witnesses',
+        'taproot_direct_causes',
+        'taproot_contributing_factors',
+        'taproot_verification_review',
+        // Barrier Analysis
+        'barrier_analysis_data',
+        // Shared
+        'corrective_actions_plan',
+        'evidence_files',
     ];
 
     protected $casts = [
         'incident_date' => 'date',
         'closed_date' => 'date',
+        'investigation_target_date' => 'date',
         'likelihood' => 'integer',
         'impact' => 'integer',
         'risk_score' => 'integer',
+        'fishbone_data' => 'array',
+        'taproot_timeline' => 'array',
+        'barrier_analysis_data' => 'array',
+        'corrective_actions_plan' => 'array',
+        'evidence_files' => 'array',
     ];
 
     /**
@@ -54,6 +81,15 @@ class Incident extends Model
     }
 
     /**
+     * Investigation records for this incident.
+     * Multiple methods can be run on one incident (e.g. Fishbone + 5 Whys).
+     */
+    public function investigations(): HasMany
+    {
+        return $this->hasMany(IncidentInvestigation::class);
+    }
+
+    /**
      * Risk level (low/medium/high/critical) derived from risk_score.
      */
     public function getRiskLevelAttribute(): string
@@ -67,6 +103,23 @@ class Incident extends Model
     public function getRequiredActionAttribute(): string
     {
         return RiskScoringService::requiredAction($this->risk_level);
+    }
+
+    /**
+     * Suggest the appropriate investigation method based on risk_score,
+     * per the NOVAREX Recommended Workflow:
+     *
+     *   Low / Medium (0-9)   → 5 Whys
+     *   High (10-15)         → Fishbone (+ 5 Whys)
+     *   Critical (16-25)     → TapRooT + Barrier Analysis
+     */
+    public function getSuggestedMethodAttribute(): string
+    {
+        return match ($this->risk_level) {
+            'critical' => 'taproot',
+            'high' => 'fishbone',
+            default => 'five_whys',
+        };
     }
 
     /**

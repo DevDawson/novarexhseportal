@@ -16,8 +16,7 @@ class StatsOverview extends BaseWidget
 
     public static function canView(): bool
     {
-        // Visible to MD (full oversight) and any role with at least one
-        // of the underlying modules' permissions.
+        // Secretary na IT Technician hawaoni general ops dashboard.
         return auth()->user()?->hasAnyRole([
             'md', 'hr_director', 'business_director', 'accountant', 'hse_staff',
         ]) ?? false;
