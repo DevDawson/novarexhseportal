@@ -17,16 +17,64 @@ class IncidentInvestigation extends Model
     protected $fillable = [
         'incident_id',
         'method',
+
+        // Section 1: Incident Overview (additional)
+        'people_involved',
+
+        // Section 1 (Five Whys)
         'why_1', 'why_2', 'why_3', 'why_4', 'why_5',
-        'root_cause',
-        'recommendations',
+
+        // Section 2: Event Timeline
         'timeline_events',
-        'witness_statements',
+
+        // Section 3: Task / Activity Description
+        'task_description',
+        'procedures_followed',
+        'deviations_from_practice',
+
+        // Section 4: Direct Causes
         'direct_causes',
+        'unsafe_acts_conditions',
+        'immediate_failures',
+
+        // Section 5: Contributing Causes
         'contributing_factors',
+        'equipment_environmental_human_factors',
+        'communication_supervision_gaps',
+
+        // Section 6: Root Causes (System Failures)
+        'root_cause',
+        'training_supervision_failure',
+        'risk_assessment_adequacy',
+        'maintenance_inspection_effectiveness',
+
+        // Section 7: Safeguards / Barriers -> investigation_barrier_items relation
+
+        // Section 8: Human Performance Factors
+        'task_understanding',
+        'distractions_fatigue_stress',
+        'competency_assessment',
+
+        // Section 9: Corrective Actions
+        'recommendations',
         'action_plan',
+
+        // Section 10: Preventive Actions
+        'preventive_actions',
+
+        // Section 11: Effectiveness Verification
         'verification_notes',
+        'effectiveness_indicators',
         'verification_date',
+
+        // Section 12: Management Review
+        'lessons_learned',
+        'management_review_notes',
+
+        // Witness statements (shared, TapRooT/Barrier)
+        'witness_statements',
+
+        // Action tracking (all methods)
         'responsible_person_id',
         'target_date',
         'status',

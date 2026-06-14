@@ -12,7 +12,6 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,       // Roles & permissions (must run first)
             LeaveTypeSeeder::class,  // Default Tanzania leave types
             DemoDataSeeder::class,   // Departments, users, clients, projects, etc.
-            ChartOfAccountsSeeder::class,   // ChartOfAccountsSeeder
         ]);
     }
 }

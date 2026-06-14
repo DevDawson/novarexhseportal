@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\IncidentResource\RelationManagers;
 
 use App\Models\IncidentInvestigation;
-use App\Services\RiskScoringService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -58,23 +57,23 @@ class InvestigationsRelationManager extends RelationManager
                 ->visible(fn (Forms\Get $get) => in_array($get('method'), ['five_whys', 'fishbone']))
                 ->schema([
                     Forms\Components\Textarea::make('why_1')
-                        ->label('Why 1 — Why did the incident occur?')
+                        ->label('Why 1 — Why did the incident happen?')
                         ->rows(2)->required(),
 
                     Forms\Components\Textarea::make('why_2')
-                        ->label('Why 2 — Why did the identified cause occur?')
+                        ->label('Why 2 — Why did that happen?')
                         ->rows(2),
 
                     Forms\Components\Textarea::make('why_3')
-                        ->label('Why 3 -  Why did the direct cause occur?')
+                        ->label('Why 3')
                         ->rows(2),
 
                     Forms\Components\Textarea::make('why_4')
-                        ->label('Why 4 - Why did the underlying cause occur?')
+                        ->label('Why 4')
                         ->rows(2),
 
                     Forms\Components\Textarea::make('why_5')
-                        ->label('Why 5 — Why did the management or system deficiency occur? (Root Cause reached)')
+                        ->label('Why 5 — Root Cause reached?')
                         ->rows(2),
                 ]),
 
@@ -92,12 +91,12 @@ class InvestigationsRelationManager extends RelationManager
                             Forms\Components\Grid::make(3)->schema([
                                 Forms\Components\Select::make('category')
                                     ->options([
-                                        'people' => '👤 People',
-                                        'equipment' => '🔧 Equipment',
-                                        'method' => '📋 Method',
-                                        'materials' => '📦 Materials',
-                                        'environment' => '🌿 Environment',
-                                        'management' => '🏢 Management',
+                                        'people' => 'People',
+                                        'equipment' => 'Equipment',
+                                        'method' => 'Method',
+                                        'materials' => 'Materials',
+                                        'environment' => 'Environment',
+                                        'management' => 'Management',
                                     ])
                                     ->required()
                                     ->native(false),
@@ -115,120 +114,299 @@ class InvestigationsRelationManager extends RelationManager
                 ]),
 
             // ============================================================
-            // METHOD C: TapRooT STYLE INVESTIGATION
+            // METHODS C & D: TapRooT / Barrier Analysis
+            // Full 12-section TapRooT Style Investigation structure.
             // ============================================================
-            Forms\Components\Section::make('TapRooT — Event Timeline')
-                ->description('Reconstruct a chronological timeline of events leading to the incident.')
-                ->visible(fn (Forms\Get $get) => in_array($get('method'), ['taprout', 'barrier']))
-                ->schema([
-                    Forms\Components\Repeater::make('timeline_events')
-                        ->schema([
-                            Forms\Components\Grid::make(3)->schema([
-                                Forms\Components\TextInput::make('time')
-                                    ->label('Time / Date')
-                                    ->placeholder('e.g. 14:30, Day 1')
-                                    ->required(),
+            Forms\Components\Wizard::make([
 
-                                Forms\Components\TextInput::make('event')
-                                    ->label('Event Title')
-                                    ->required()
-                                    ->columnSpan(2),
+                // ---- Section 1: Incident Overview ------------------------
+                Forms\Components\Wizard\Step::make('Incident Overview')
+                    ->description('What, where, when, who')
+                    ->icon('heroicon-o-information-circle')
+                    ->schema([
+                        Forms\Components\Section::make()
+                            ->columns(2)
+                            ->schema([
+                                Forms\Components\Placeholder::make('overview_description')
+                                    ->label('What is the incident being investigated?')
+                                    ->content($incident->description ?: '-')
+                                    ->columnSpanFull(),
 
-                                Forms\Components\Textarea::make('description')
-                                    ->label('Detail')
-                                    ->rows(2)
+                                Forms\Components\Placeholder::make('overview_location')
+                                    ->label('Where did it occur?')
+                                    ->content($incident->location ?: '-'),
+
+                                Forms\Components\Placeholder::make('overview_date')
+                                    ->label('When did it occur?')
+                                    ->content($incident->incident_date?->format('d M Y') ?: '-'),
+
+                                Forms\Components\Textarea::make('people_involved')
+                                    ->label('Who was involved? (names, roles)')
+                                    ->rows(3)
                                     ->columnSpanFull(),
                             ]),
-                        ])
-                        ->addActionLabel('Add Event')
-                        ->reorderable(true)
-                        ->columnSpanFull(),
-                ]),
+                    ]),
 
-            Forms\Components\Section::make('TapRooT — Investigation Details')
-                ->visible(fn (Forms\Get $get) => in_array($get('method'), ['taprout', 'barrier']))
-                ->columns(1)
-                ->schema([
-                    Forms\Components\Textarea::make('witness_statements')
-                        ->label('Witness Statements')
-                        ->rows(3),
+                // ---- Section 2: Event Timeline Reconstruction ----------------
+                Forms\Components\Wizard\Step::make('Event Timeline')
+                    ->description('Sequence of events before, during, after')
+                    ->icon('heroicon-o-clock')
+                    ->schema([
+                        Forms\Components\Repeater::make('timeline_events')
+                            ->label('Event Timeline Reconstruction')
+                            ->schema([
+                                Forms\Components\Grid::make(4)->schema([
+                                    Forms\Components\Select::make('phase')
+                                        ->label('Phase')
+                                        ->options([
+                                            'before' => 'Before Incident',
+                                            'during' => 'During Incident',
+                                            'after' => 'After Incident',
+                                        ])
+                                        ->default('before')
+                                        ->required()
+                                        ->native(false),
 
-                    Forms\Components\Textarea::make('direct_causes')
-                        ->label('Identify Direct Causes')
-                        ->rows(2),
+                                    Forms\Components\TextInput::make('time')
+                                        ->label('Time / Date')
+                                        ->placeholder('e.g. 14:30, Day 1')
+                                        ->required(),
 
-                    Forms\Components\Textarea::make('contributing_factors')
-                        ->label('Contributing Factors')
-                        ->rows(2),
+                                    Forms\Components\TextInput::make('event')
+                                        ->label('Event Title')
+                                        ->required()
+                                        ->columnSpan(2),
 
-                    Forms\Components\Textarea::make('action_plan')
-                        ->label('Action Plan')
-                        ->rows(3),
+                                    Forms\Components\Textarea::make('description')
+                                        ->label('What happened? (step-by-step detail)')
+                                        ->rows(2)
+                                        ->columnSpanFull(),
+                                ]),
+                            ])
+                            ->addActionLabel('Add Event')
+                            ->reorderable(true)
+                            ->helperText('Add one row per event - mark each as Before / During / After the incident to build the full sequence. "During" rows should capture the step-by-step actions taken.')
+                            ->columnSpanFull(),
 
-                    Forms\Components\Grid::make(2)->schema([
-                        Forms\Components\Textarea::make('verification_notes')
-                            ->label('Verification / Effectiveness Review')
+                        Forms\Components\Textarea::make('witness_statements')
+                            ->label('Witness Statements')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                    ]),
+
+                // ---- Section 3: Task / Activity Description ----------------
+                Forms\Components\Wizard\Step::make('Task / Activity')
+                    ->description('What was being done, procedures, deviations')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->schema([
+                        Forms\Components\Textarea::make('task_description')
+                            ->label('What task was being performed at the time of the incident?')
                             ->rows(2),
 
-                        Forms\Components\DatePicker::make('verification_date')
-                            ->label('Verification Date')
-                            ->native(false),
+                        Forms\Components\Textarea::make('procedures_followed')
+                            ->label('What procedures or instructions were supposed to be followed?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('deviations_from_practice')
+                            ->label('Were there any deviations from normal work practice?')
+                            ->rows(2),
                     ]),
-                ]),
+
+                // ---- Section 4: Direct Causes ------------------------------
+                Forms\Components\Wizard\Step::make('Direct Causes')
+                    ->description('Unsafe acts, conditions, immediate failures')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->schema([
+                        Forms\Components\Textarea::make('direct_causes')
+                            ->label('What directly caused the incident to occur?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('unsafe_acts_conditions')
+                            ->label('What unsafe acts or unsafe conditions were present?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('immediate_failures')
+                            ->label('What immediate failures led to the event?')
+                            ->rows(2),
+                    ]),
+
+                // ---- Section 5: Contributing Causes -------------------------
+                Forms\Components\Wizard\Step::make('Contributing Causes')
+                    ->description('Equipment, environment, human, communication')
+                    ->icon('heroicon-o-link')
+                    ->schema([
+                        Forms\Components\Textarea::make('contributing_factors')
+                            ->label('What factors contributed to the direct causes?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('equipment_environmental_human_factors')
+                            ->label('Were there equipment, environmental, or human factors involved?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('communication_supervision_gaps')
+                            ->label('Were there communication or supervision gaps?')
+                            ->rows(2),
+                    ]),
+
+                // ---- Section 6: Root Causes (System Failures) ------------------
+                Forms\Components\Wizard\Step::make('Root Causes')
+                    ->description('Management system failures')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->schema([
+                        Forms\Components\Textarea::make('root_cause')
+                            ->label('What management system failures allowed the incident to occur?')
+                            ->rows(2)
+                            ->required(),
+
+                        Forms\Components\Textarea::make('training_supervision_failure')
+                            ->label('Was there a failure in training, supervision, or procedures?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('risk_assessment_adequacy')
+                            ->label('Was risk assessment adequate and effectively implemented?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('maintenance_inspection_effectiveness')
+                            ->label('Was maintenance or inspection system effective?')
+                            ->rows(2),
+                    ]),
+
+                // ---- Section 7: Safeguards / Barriers Analysis ------------------
+                Forms\Components\Wizard\Step::make('Safeguards / Barriers')
+                    ->description('Barriers that should have prevented this')
+                    ->icon('heroicon-o-shield-exclamation')
+                    ->schema([
+                        Forms\Components\Repeater::make('barrierItems')
+                            ->relationship('barrierItems')
+                            ->label('')
+                            ->schema([
+                                Forms\Components\Grid::make(2)->schema([
+                                    Forms\Components\TextInput::make('hazard')
+                                        ->label('Hazard')
+                                        ->required(),
+
+                                    Forms\Components\TextInput::make('required_barrier')
+                                        ->label('What barrier was supposed to prevent this?'),
+                                ]),
+
+                                Forms\Components\Grid::make(3)->schema([
+                                    Forms\Components\Select::make('barrier_status')
+                                        ->label('Which barrier failed or was missing?')
+                                        ->options([
+                                            'in_place' => 'In Place',
+                                            'missing' => 'Missing',
+                                            'failed' => 'Failed',
+                                            'not_worn' => 'Not Worn (PPE)',
+                                            'not_implemented' => 'Not Implemented',
+                                        ])
+                                        ->default('missing')
+                                        ->required()
+                                        ->native(false),
+
+                                    Forms\Components\Textarea::make('control_failure')
+                                        ->label('Why was the barrier ineffective?')
+                                        ->rows(2),
+
+                                    Forms\Components\Textarea::make('corrective_action')
+                                        ->label('Corrective Action')
+                                        ->rows(2),
+                                ]),
+                            ])
+                            ->addActionLabel('Add Hazard / Barrier Row')
+                            ->reorderable(false)
+                            ->columnSpanFull(),
+                    ]),
+
+                // ---- Section 8: Human Performance Factors ------------------
+                Forms\Components\Wizard\Step::make('Human Performance')
+                    ->description('Understanding, fatigue, competency')
+                    ->icon('heroicon-o-user')
+                    ->schema([
+                        Forms\Components\Textarea::make('task_understanding')
+                            ->label('Was the task properly understood?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('distractions_fatigue_stress')
+                            ->label('Were there distractions, fatigue, or stress factors?')
+                            ->rows(2),
+
+                        Forms\Components\Textarea::make('competency_assessment')
+                            ->label('Was competency sufficient for the task?')
+                            ->rows(2),
+                    ]),
+
+                // ---- Section 9: Corrective Actions ------------------------------
+                Forms\Components\Wizard\Step::make('Corrective Actions')
+                    ->description('Eliminate direct causes & system changes')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->schema([
+                        Forms\Components\Textarea::make('recommendations')
+                            ->label('What actions are required to eliminate direct causes? What system changes are needed to address root causes?')
+                            ->rows(4),
+                    ]),
+
+                // ---- Section 10: Preventive Actions ------------------------------
+                Forms\Components\Wizard\Step::make('Preventive Actions')
+                    ->description('Long-term improvements')
+                    ->icon('heroicon-o-shield-check')
+                    ->schema([
+                        Forms\Components\Textarea::make('preventive_actions')
+                            ->label('What long-term improvements will prevent recurrence? What changes are needed in procedures, training, or maintenance systems?')
+                            ->rows(4),
+                    ]),
+
+                // ---- Section 11: Effectiveness Verification ------------------------------
+                Forms\Components\Wizard\Step::make('Effectiveness Verification')
+                    ->description('Confirm corrective actions worked')
+                    ->icon('heroicon-o-check-badge')
+                    ->schema([
+                        Forms\Components\Textarea::make('effectiveness_indicators')
+                            ->label('How will we confirm that corrective actions worked? What indicators will be used to measure effectiveness?')
+                            ->rows(3),
+
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\Textarea::make('verification_notes')
+                                ->label('Verification / Effectiveness Review Notes')
+                                ->rows(2),
+
+                            Forms\Components\DatePicker::make('verification_date')
+                                ->label('Verification Date')
+                                ->native(false),
+                        ]),
+                    ]),
+
+                // ---- Section 12: Management Review ------------------------------
+                Forms\Components\Wizard\Step::make('Management Review')
+                    ->description('Lessons learned & org-level improvements')
+                    ->icon('heroicon-o-presentation-chart-line')
+                    ->schema([
+                        Forms\Components\Textarea::make('lessons_learned')
+                            ->label('What lessons learned are identified?')
+                            ->rows(3),
+
+                        Forms\Components\Textarea::make('management_review_notes')
+                            ->label('What system improvements are required at organizational level?')
+                            ->rows(3),
+
+                        Forms\Components\FileUpload::make('evidence_files')
+                            ->label('Evidence (Photos, Videos, Documents)')
+                            ->directory('investigations/evidence')
+                            ->multiple()
+                            ->openable()
+                            ->columnSpanFull(),
+                    ]),
+            ])
+                ->visible(fn (Forms\Get $get) => in_array($get('method'), ['taprout', 'barrier']))
+                ->columnSpanFull()
+                ->skippable(),
 
             // ============================================================
-            // METHOD D: BARRIER ANALYSIS
-            // ============================================================
-            Forms\Components\Section::make('Barrier Analysis — Control Failures')
-                ->description('Identify each hazard, its required control (barrier), and why the control failed.')
-                ->visible(fn (Forms\Get $get) => $get('method') === 'barrier')
-                ->schema([
-                    Forms\Components\Repeater::make('barrierItems')
-                        ->relationship('barrierItems')
-                        ->label('')
-                        ->schema([
-                            Forms\Components\Grid::make(2)->schema([
-                                Forms\Components\TextInput::make('hazard')
-                                    ->label('Hazard')
-                                    ->required(),
-
-                                Forms\Components\TextInput::make('required_barrier')
-                                    ->label('Required Control / Barrier'),
-                            ]),
-
-                            Forms\Components\Grid::make(3)->schema([
-                                Forms\Components\Select::make('barrier_status')
-                                    ->label('Barrier Status')
-                                    ->options([
-                                        'in_place' => '✓ In Place',
-                                        'missing' => '✗ Missing',
-                                        'failed' => '⚠ Failed',
-                                        'not_worn' => '✗ Not Worn (PPE)',
-                                        'not_implemented' => '✗ Not Implemented',
-                                    ])
-                                    ->default('missing')
-                                    ->required()
-                                    ->native(false),
-
-                                Forms\Components\Textarea::make('control_failure')
-                                    ->label('Why Did Control Fail?')
-                                    ->rows(2),
-
-                                Forms\Components\Textarea::make('corrective_action')
-                                    ->label('Corrective Action')
-                                    ->rows(2),
-                            ]),
-                        ])
-                        ->addActionLabel('Add Hazard / Barrier Row')
-                        ->reorderable(false)
-                        ->columnSpanFull(),
-                ]),
-
-            // ============================================================
-            // ROOT CAUSE + ACTIONS (all methods)
+            // ROOT CAUSE & RECOMMENDATIONS (5 Whys / Fishbone only -
+            // TapRooT/Barrier capture these inside the Wizard above)
             // ============================================================
             Forms\Components\Section::make('Root Cause & Corrective Actions')
                 ->columns(1)
+                ->visible(fn (Forms\Get $get) => in_array($get('method'), ['five_whys', 'fishbone']))
                 ->schema([
                     Forms\Components\Textarea::make('root_cause')
                         ->label('Root Cause Summary')
@@ -249,7 +427,7 @@ class InvestigationsRelationManager extends RelationManager
                 ]),
 
             // ============================================================
-            // ACTION TRACKING
+            // ACTION TRACKING (all methods)
             // ============================================================
             Forms\Components\Section::make('Action Tracking & Closure')
                 ->columns(3)
@@ -313,10 +491,12 @@ class InvestigationsRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->label('Start Investigation'),
+                    ->label('Start Investigation')
+                    ->modalWidth('4xl'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->modalWidth('4xl'),
                 Tables\Actions\DeleteAction::make(),
             ]);
     }
