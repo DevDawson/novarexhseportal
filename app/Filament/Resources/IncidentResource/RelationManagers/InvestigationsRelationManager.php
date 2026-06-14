@@ -58,23 +58,23 @@ class InvestigationsRelationManager extends RelationManager
                 ->visible(fn (Forms\Get $get) => in_array($get('method'), ['five_whys', 'fishbone']))
                 ->schema([
                     Forms\Components\Textarea::make('why_1')
-                        ->label('Why 1 — Why did the incident happen?')
+                        ->label('Why 1 — Why did the incident occur?')
                         ->rows(2)->required(),
 
                     Forms\Components\Textarea::make('why_2')
-                        ->label('Why 2 — Why did that happen?')
+                        ->label('Why 2 — Why did the identified cause occur?')
                         ->rows(2),
 
                     Forms\Components\Textarea::make('why_3')
-                        ->label('Why 3')
+                        ->label('Why 3 -  Why did the direct cause occur?')
                         ->rows(2),
 
                     Forms\Components\Textarea::make('why_4')
-                        ->label('Why 4')
+                        ->label('Why 4 - Why did the underlying cause occur?')
                         ->rows(2),
 
                     Forms\Components\Textarea::make('why_5')
-                        ->label('Why 5 — Root Cause reached?')
+                        ->label('Why 5 — Why did the management or system deficiency occur? (Root Cause reached)')
                         ->rows(2),
                 ]),
 
