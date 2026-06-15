@@ -1,9 +1,12 @@
+# Laravel
 /.phpunit.cache
 /node_modules
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
+/storage/logs/*.log
+/storage/app/private
 /vendor
 .env
 .env.backup
@@ -14,6 +17,19 @@ Homestead.yaml
 auth.json
 npm-debug.log
 yarn-error.log
+
+# IDE
 /.fleet
 /.idea
 /.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# PDF / Upload artifacts (generated at runtime, not source)
+/public/storage/governance-policies
+/public/storage/audit-reports
+
+# Docker
+docker-compose.override.yml

@@ -503,6 +503,12 @@ class IncidentResource extends Resource
             ])
             ->defaultSort('incident_date', 'desc')
             ->actions([
+                Tables\Actions\Action::make('export_pdf')
+                    ->label('PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->url(fn ($record) => route('pdf.incident', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

@@ -2,11 +2,20 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\EmsKpiOverview;
+use App\Filament\Widgets\EnvironmentalMetricsTrendChart;
+use App\Filament\Widgets\EsgKpiOverview;
+use App\Filament\Widgets\EsgTargetsProgressWidget;
 use App\Filament\Widgets\ExpiringDocumentsWidget;
+use App\Filament\Widgets\ExpiringLicensesWidget;
+use App\Filament\Widgets\ExpiringPermitsWidget;
+use App\Filament\Widgets\HighRiskHazardsWidget;
 use App\Filament\Widgets\HseKpiOverview;
 use App\Filament\Widgets\IncidentSeverityChart;
 use App\Filament\Widgets\IncidentTrendChart;
+use App\Filament\Widgets\OpenAuditFindingsWidget;
 use App\Filament\Widgets\OpenCorrectiveActionsWidget;
+use App\Filament\Widgets\OpenGrievancesWidget;
 use App\Filament\Widgets\ProjectSafetyPerformanceWidget;
 use App\Filament\Widgets\RevenueVsExpensesChart;
 use App\Filament\Widgets\StatsOverview;
@@ -38,6 +47,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
                 'success' => Color::Green,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
 
             // Auto-discover Resources and Pages (fine).
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
@@ -80,6 +91,33 @@ class AdminPanelProvider extends PanelProvider
 
                 // 6. Corporate document expiry alerts (anyone who can manage docs)
                 ExpiringDocumentsWidget::class,
+
+                // 7. Permit to Work - expiring/overdue permits (MD, HSE Staff)
+                ExpiringPermitsWidget::class,
+
+                // 8. HIRA - high/critical residual hazards (MD, HSE Staff)
+                HighRiskHazardsWidget::class,
+
+                // 9. Audit Module - open nonconformities (MD, HSE Staff, Business Director)
+                OpenAuditFindingsWidget::class,
+
+                // 10. EMS KPI stats (MD, HSE Staff, Business Director)
+                EmsKpiOverview::class,
+
+                // 11. EMS environmental metrics trend chart (MD, HSE Staff, Business Director)
+                EnvironmentalMetricsTrendChart::class,
+
+                // 12. EMS expiring licences/permits (MD, HSE Staff)
+                ExpiringLicensesWidget::class,
+
+                // 13. ESG KPI stats (MD, ESG Officer, Business Director)
+                EsgKpiOverview::class,
+
+                // 14. ESG targets progress table (MD, ESG Officer, Business Director)
+                EsgTargetsProgressWidget::class,
+
+                // 15. Open grievances (MD, ESG Officer)
+                OpenGrievancesWidget::class,
             ])
 
             ->middleware([
