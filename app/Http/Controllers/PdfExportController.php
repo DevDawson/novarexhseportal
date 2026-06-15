@@ -11,6 +11,13 @@ use App\Models\Incident;
 use App\Models\InternalAudit;
 use App\Models\SocialIndicator;
 use App\Services\RiskScoringService;
+use App\Models\EsiaBaselineData;
+use App\Models\EsiaImpactAssessment;
+use App\Models\EsiaMitigationAction;
+use App\Models\EsiaReport;
+use App\Models\EsiaRegulatorySubmission;
+use App\Models\EsiaScreening;
+use App\Models\EsiaScopingIssue;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 
@@ -86,6 +93,34 @@ class PdfExportController extends Controller
         ])->setPaper('a4');
 
         return $pdf->download("EMS-Aspect-{$aspect->id}-" . now()->format('Ymd') . '.pdf');
+    }
+
+    // ----------------------------------------------------------------
+    // ESIA Report (project-level comprehensive export)
+    // ----------------------------------------------------------------
+
+    public function esiaReport(EsiaReport $report): Response
+    {
+        abort_unless(auth()->user()?->can('manage esia_audits'), 403);
+
+        $report->load('project', 'author', 'reviewedBy');
+
+        $projectId = $report->project_id;
+
+        $screening    = EsiaScreening::where('project_id', $projectId)->latest()->first();
+        $scopingIssues = EsiaScopingIssue::where('project_id', $projectId)->orderBy('sort_order')->get();
+        $baselineData  = EsiaBaselineData::where('project_id', $projectId)->orderBy('parameter_type')->get();
+        $impacts       = EsiaImpactAssessment::where('project_id', $projectId)->get();
+        $mitigations   = EsiaMitigationAction::where('project_id', $projectId)->orderBy('timeline_start')->get();
+        $submissions   = EsiaRegulatorySubmission::where('project_id', $projectId)
+            ->orderBy('submitted_at')->get();
+
+        $pdf = Pdf::loadView('pdf.esia-report', compact(
+            'report', 'screening', 'scopingIssues', 'baselineData',
+            'impacts', 'mitigations', 'submissions'
+        ))->setPaper('a4');
+
+        return $pdf->download("ESIA-{$report->project_id}-Report-v{$report->version}-" . now()->format('Ymd') . '.pdf');
     }
 
     // ----------------------------------------------------------------

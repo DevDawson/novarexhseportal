@@ -28,4 +28,7 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
 
     Route::get('/esg/summary',             [PdfExportController::class, 'esgSummary'])
         ->name('esg.summary');
+
+    Route::get('/esia/report/{report}',    [PdfExportController::class, 'esiaReport'])
+        ->name('esia.report');
 });

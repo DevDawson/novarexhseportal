@@ -8,12 +8,6 @@ use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
-    /**
-     * Company roles -> module permissions.
-     *
-     * Permission naming convention: "{action} {module}"
-     * e.g. "view payroll", "approve field_expenses".
-     */
     public function run(): void
     {
         $permissions = [
@@ -50,7 +44,7 @@ class RoleSeeder extends Seeder
             // Project Deliverables
             'manage deliverables',
 
-            // HIRA - Hazard Identification & Risk Assessment
+            // HIRA
             'manage hazards',
 
             // Internal Audit Module
@@ -69,6 +63,13 @@ class RoleSeeder extends Seeder
             'manage ethics_incidents',
             'manage esg_targets',
 
+            // EIA / ESIA
+            'manage esia_screenings',
+            'manage esia_impacts',
+            'manage esia_mitigation',
+            'manage esia_reports',
+            'manage esia_submissions',
+
             // System
             'manage users',
             'manage settings',
@@ -79,16 +80,21 @@ class RoleSeeder extends Seeder
         }
 
         // ------------------------------------------------------------
-        // Managing Director (MD) - full oversight, approvals
+        // Managing Director (MD)
         // ------------------------------------------------------------
         $md = Role::findOrCreate('md');
         $md->syncPermissions([
             'view dashboard',
             'manage corporate_documents',
-            'view hse', 'manage incidents', 'manage risks', 'manage projects', 'manage esia_audits', 'manage permits', 'manage hazards', 'manage audits',
+            'view hse', 'manage incidents', 'manage risks', 'manage projects',
+            'manage esia_audits', 'manage permits', 'manage hazards', 'manage audits',
+            'manage esia_screenings', 'manage esia_impacts', 'manage esia_mitigation',
+            'manage esia_reports', 'manage esia_submissions',
             'view business_development', 'manage tenders',
-            'view finance', 'manage invoices', 'manage field_expenses', 'approve field_expenses', 'manage petty_cash',
-            'view hr', 'manage staff', 'manage leave_requests', 'approve leave_requests', 'manage payroll',
+            'view finance', 'manage invoices', 'manage field_expenses',
+            'approve field_expenses', 'manage petty_cash',
+            'view hr', 'manage staff', 'manage leave_requests',
+            'approve leave_requests', 'manage payroll',
             'manage deliverables',
             'manage environmental_aspects', 'manage legal_register', 'manage environmental_monitoring',
             'manage stakeholders', 'manage grievances', 'manage social_indicators',
@@ -97,17 +103,18 @@ class RoleSeeder extends Seeder
         ]);
 
         // ------------------------------------------------------------
-        // HR Director - Staff, Leave, Payroll
+        // HR Director
         // ------------------------------------------------------------
         $hr = Role::findOrCreate('hr_director');
         $hr->syncPermissions([
             'view dashboard',
-            'view hr', 'manage staff', 'manage leave_requests', 'approve leave_requests', 'manage payroll',
+            'view hr', 'manage staff', 'manage leave_requests',
+            'approve leave_requests', 'manage payroll',
             'manage corporate_documents',
         ]);
 
         // ------------------------------------------------------------
-        // Business Director - Tenders, Clients, BD pipeline
+        // Business Director
         // ------------------------------------------------------------
         $bd = Role::findOrCreate('business_director');
         $bd->syncPermissions([
@@ -121,17 +128,18 @@ class RoleSeeder extends Seeder
         ]);
 
         // ------------------------------------------------------------
-        // Accountant - Finance, Payroll (view/process), expense approvals
+        // Accountant
         // ------------------------------------------------------------
         $accountant = Role::findOrCreate('accountant');
         $accountant->syncPermissions([
             'view dashboard',
-            'view finance', 'manage invoices', 'manage field_expenses', 'approve field_expenses', 'manage petty_cash',
+            'view finance', 'manage invoices', 'manage field_expenses',
+            'approve field_expenses', 'manage petty_cash',
             'view hr', 'manage payroll',
         ]);
 
         // ------------------------------------------------------------
-        // IT Technician - system/users/settings, no business data
+        // IT Technician
         // ------------------------------------------------------------
         $it = Role::findOrCreate('it_technician');
         $it->syncPermissions([
@@ -140,12 +148,15 @@ class RoleSeeder extends Seeder
         ]);
 
         // ------------------------------------------------------------
-        // HSE Staff - Incidents, Risks, ESIA/Audits, Projects (read/contribute)
+        // HSE Staff
         // ------------------------------------------------------------
         $hse = Role::findOrCreate('hse_staff');
         $hse->syncPermissions([
             'view dashboard',
-            'view hse', 'manage incidents', 'manage risks', 'manage esia_audits', 'manage permits', 'manage hazards', 'manage audits',
+            'view hse', 'manage incidents', 'manage risks',
+            'manage esia_audits', 'manage permits', 'manage hazards', 'manage audits',
+            'manage esia_screenings', 'manage esia_impacts', 'manage esia_mitigation',
+            'manage esia_reports', 'manage esia_submissions',
             'manage deliverables',
             'manage field_expenses',
             'manage leave_requests',
@@ -153,7 +164,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // ------------------------------------------------------------
-        // ESG Officer - full ESG module + stakeholder + governance
+        // ESG Officer
         // ------------------------------------------------------------
         $esg = Role::findOrCreate('esg_officer');
         $esg->syncPermissions([
@@ -164,7 +175,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // ------------------------------------------------------------
-        // Field Staff - Submit own leave requests + field expenses
+        // Field Staff
         // ------------------------------------------------------------
         $fieldStaff = Role::findOrCreate('field_staff');
         $fieldStaff->syncPermissions([
@@ -174,7 +185,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // ------------------------------------------------------------
-        // Secretary - Corporate documents, basic admin support
+        // Secretary
         // ------------------------------------------------------------
         $secretary = Role::findOrCreate('secretary');
         $secretary->syncPermissions([

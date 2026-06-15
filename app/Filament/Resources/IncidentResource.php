@@ -19,7 +19,7 @@ class IncidentResource extends Resource
 
     protected static ?string $navigationGroup = 'HSE & Technical Operations';
 
-    protected static ?string $modelLabel = 'Incident Report';
+    protected static ?string $modelLabel = 'Investigation & Reporting';
 
     /**
      * HSE Staff manage incidents day-to-day. MD has oversight access.

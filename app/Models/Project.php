@@ -103,4 +103,43 @@ class Project extends Model
     {
         return $this->hasMany(Deliverable::class);
     }
+
+    // ----------------------------------------------------------------
+    // EIA / ESIA Module relations
+    // ----------------------------------------------------------------
+
+    public function esiaScreening(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(EsiaScreening::class);
+    }
+
+    public function esiaScopingIssues(): HasMany
+    {
+        return $this->hasMany(EsiaScopingIssue::class);
+    }
+
+    public function esiaBaselineData(): HasMany
+    {
+        return $this->hasMany(EsiaBaselineData::class);
+    }
+
+    public function esiaImpactAssessments(): HasMany
+    {
+        return $this->hasMany(EsiaImpactAssessment::class);
+    }
+
+    public function esiaMitigationActions(): HasMany
+    {
+        return $this->hasMany(EsiaMitigationAction::class);
+    }
+
+    public function esiaReports(): HasMany
+    {
+        return $this->hasMany(EsiaReport::class);
+    }
+
+    public function esiaRegulatorySubmissions(): HasMany
+    {
+        return $this->hasMany(EsiaRegulatorySubmission::class);
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\EmsKpiOverview;
+use App\Filament\Widgets\EsiaOverviewWidget;
 use App\Filament\Widgets\EnvironmentalMetricsTrendChart;
 use App\Filament\Widgets\EsgKpiOverview;
 use App\Filament\Widgets\EsgTargetsProgressWidget;
@@ -118,6 +119,9 @@ class AdminPanelProvider extends PanelProvider
 
                 // 15. Open grievances (MD, ESG Officer)
                 OpenGrievancesWidget::class,
+
+                // 16. EIA/ESIA overview KPIs (MD, HSE Staff, Business Director)
+                EsiaOverviewWidget::class,
             ])
 
             ->middleware([
