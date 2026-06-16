@@ -3,7 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CorporateDocumentResource\Pages;
+use App\Filament\Resources\CorporateDocumentResource\RelationManagers\RevisionsRelationManager;
 use App\Models\CorporateDocument;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,9 +18,13 @@ class CorporateDocumentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static ?string $navigationGroup = 'Dashboard & Core Admin';
+    protected static ?string $navigationGroup = 'Document Control';
 
-    protected static ?string $modelLabel = 'Corporate Document';
+    protected static ?string $navigationLabel = 'Documents';
+
+    protected static ?string $modelLabel = 'Document';
+
+    protected static ?string $pluralModelLabel = 'Document Register';
 
     /**
      * Corporate documents (policies, certificates, licenses) are
@@ -60,10 +66,14 @@ class CorporateDocumentResource extends Resource
                     Forms\Components\Select::make('category')
                         ->options([
                             'policy' => 'Policy',
+                            'procedure' => 'Procedure',
+                            'work_instruction' => 'Work Instruction',
+                            'form' => 'Form / Template',
                             'certificate' => 'Certificate',
                             'license' => 'License',
                             'manual' => 'Manual',
                             'sop' => 'SOP',
+                            'register' => 'Register',
                             'other' => 'Other',
                         ])
                         ->default('other')
@@ -100,6 +110,24 @@ class CorporateDocumentResource extends Resource
 
                     Forms\Components\Hidden::make('uploaded_by')
                         ->default(fn () => auth()->id()),
+
+                    Forms\Components\TextInput::make('current_revision')
+                        ->label('Current Revision')
+                        ->maxLength(20)
+                        ->placeholder('e.g. Rev 0'),
+
+                    Forms\Components\TextInput::make('document_owner')
+                        ->label('Document Owner / Author')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('distribution_list')
+                        ->label('Distribution List')
+                        ->maxLength(500)
+                        ->helperText('Roles or departments that receive this document'),
+
+                    Forms\Components\DatePicker::make('next_review_date')
+                        ->label('Next Review Date')
+                        ->native(false),
                 ]),
         ]);
     }
@@ -150,6 +178,9 @@ class CorporateDocumentResource extends Resource
                         return 'success';
                     }),
 
+                Tables\Columns\TextColumn::make('current_revision')->label('Revision')->toggleable(),
+                Tables\Columns\TextColumn::make('document_owner')->label('Owner')->toggleable(),
+                Tables\Columns\TextColumn::make('next_review_date')->date('d M Y')->label('Next Review')->toggleable(),
                 Tables\Columns\TextColumn::make('uploadedBy.name')
                     ->label('Uploaded By')
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -164,12 +195,9 @@ class CorporateDocumentResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('category')
                     ->options([
-                        'policy' => 'Policy',
-                        'certificate' => 'Certificate',
-                        'license' => 'License',
-                        'manual' => 'Manual',
-                        'sop' => 'SOP',
-                        'other' => 'Other',
+                        'policy' => 'Policy', 'procedure' => 'Procedure', 'work_instruction' => 'Work Instruction',
+                        'form' => 'Form', 'certificate' => 'Certificate', 'license' => 'License',
+                        'manual' => 'Manual', 'sop' => 'SOP', 'register' => 'Register', 'other' => 'Other',
                     ]),
 
                 Tables\Filters\SelectFilter::make('status')
@@ -195,6 +223,13 @@ class CorporateDocumentResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getRelationManagers(): array
+    {
+        return [
+            RevisionsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

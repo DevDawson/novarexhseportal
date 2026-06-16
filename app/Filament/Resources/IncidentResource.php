@@ -79,6 +79,8 @@ class IncidentResource extends Resource
                     Forms\Components\Select::make('incident_type')
                         ->options([
                             'near_miss' => 'Near Miss',
+                            'unsafe_act' => 'Unsafe Act',
+                            'unsafe_condition' => 'Unsafe Condition',
                             'first_aid' => 'First Aid Case',
                             'medical_treatment' => 'Medical Treatment Case',
                             'lost_time' => 'Lost Time Injury',
@@ -414,6 +416,7 @@ class IncidentResource extends Resource
                     ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->title())
                     ->colors([
                         'gray' => ['near_miss', 'first_aid'],
+                        'primary' => ['unsafe_act', 'unsafe_condition'],
                         'warning' => ['medical_treatment', 'property_damage', 'environmental'],
                         'danger' => ['lost_time', 'fatality'],
                     ]),

@@ -80,13 +80,19 @@ class Incident extends Model
         return $this->belongsTo(User::class, 'reported_by');
     }
 
-    /**
-     * Investigation records for this incident.
-     * Multiple methods can be run on one incident (e.g. Fishbone + 5 Whys).
-     */
     public function investigations(): HasMany
     {
         return $this->hasMany(IncidentInvestigation::class);
+    }
+
+    public function capaActions(): HasMany
+    {
+        return $this->hasMany(CapaAction::class);
+    }
+
+    public function lessonsLearned(): HasMany
+    {
+        return $this->hasMany(LessonsLearned::class);
     }
 
     /**

@@ -14,22 +14,20 @@ class InternalAudit extends Model
     use HasFactory;
 
     protected $fillable = [
-        'audit_reference',
-        'audit_type',
-        'standard',
-        'standard_other',
-        'scope',
-        'project_id',
-        'department_id',
-        'audit_date',
-        'lead_auditor_id',
-        'status',
-        'summary',
-        'report_file',
+        'audit_reference', 'audit_type', 'standard', 'standard_other', 'scope',
+        'audit_objectives', 'audit_criteria',
+        'project_id', 'department_id',
+        'audit_date', 'planned_start_date', 'planned_end_date',
+        'lead_auditor_id', 'status',
+        'opening_meeting_notes', 'closing_meeting_notes', 'summary', 'report_file',
+        'closure_verification_notes', 'closure_verified_by_id', 'closure_date',
     ];
 
     protected $casts = [
         'audit_date' => 'date',
+        'planned_start_date' => 'date',
+        'planned_end_date' => 'date',
+        'closure_date' => 'date',
     ];
 
     public const AUDIT_TYPE_LABELS = [
@@ -82,6 +80,21 @@ class InternalAudit extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function closureVerifiedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'closure_verified_by_id');
+    }
+
+    public function capaActions(): HasMany
+    {
+        return $this->hasMany(CapaAction::class, 'audit_id');
+    }
+
+    public function lessonsLearned(): HasMany
+    {
+        return $this->hasMany(LessonsLearned::class, 'audit_id');
     }
 
     // ----------------------------------------------------------------

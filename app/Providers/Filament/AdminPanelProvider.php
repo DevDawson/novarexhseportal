@@ -10,6 +10,7 @@ use App\Filament\Widgets\EsgTargetsProgressWidget;
 use App\Filament\Widgets\ExpiringDocumentsWidget;
 use App\Filament\Widgets\ExpiringLicensesWidget;
 use App\Filament\Widgets\ExpiringPermitsWidget;
+use App\Filament\Widgets\HazidKpiWidget;
 use App\Filament\Widgets\HighRiskHazardsWidget;
 use App\Filament\Widgets\HseKpiOverview;
 use App\Filament\Widgets\IncidentSeverityChart;
@@ -98,6 +99,9 @@ class AdminPanelProvider extends PanelProvider
 
                 // 8. HIRA - high/critical residual hazards (MD, HSE Staff)
                 HighRiskHazardsWidget::class,
+
+                // 8b. HAZID KPI overview — 10 headline metrics (MD, HSE Staff)
+                HazidKpiWidget::class,
 
                 // 9. Audit Module - open nonconformities (MD, HSE Staff, Business Director)
                 OpenAuditFindingsWidget::class,

@@ -136,6 +136,34 @@ class InternalAuditResource extends Resource
                 ]),
 
             // --------------------------------------------------------
+            // SECTION 1b: Planning Details (ISO 19011 §6.2)
+            // --------------------------------------------------------
+            Forms\Components\Section::make('Audit Planning')
+                ->description('Define objectives, criteria, and planned audit dates before execution.')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\Textarea::make('audit_objectives')
+                        ->label('Audit Objectives')
+                        ->rows(3)
+                        ->columnSpanFull(),
+
+                    Forms\Components\Textarea::make('audit_criteria')
+                        ->label('Audit Criteria')
+                        ->helperText('Standards, procedures, or requirements the audit is measured against.')
+                        ->rows(3)
+                        ->columnSpanFull(),
+
+                    Forms\Components\DatePicker::make('planned_start_date')
+                        ->label('Planned Start Date')
+                        ->native(false),
+
+                    Forms\Components\DatePicker::make('planned_end_date')
+                        ->label('Planned End Date')
+                        ->native(false)
+                        ->afterOrEqual('planned_start_date'),
+                ]),
+
+            // --------------------------------------------------------
             // SECTION 2: Audit Team
             // --------------------------------------------------------
             Forms\Components\Section::make('Audit Team')
@@ -151,7 +179,24 @@ class InternalAuditResource extends Resource
                 ]),
 
             // --------------------------------------------------------
-            // SECTION 3: Summary & Report
+            // SECTION 3: Execution Notes
+            // --------------------------------------------------------
+            Forms\Components\Section::make('Audit Execution')
+                ->description('Notes from opening and closing meetings recorded during audit execution.')
+                ->schema([
+                    Forms\Components\Textarea::make('opening_meeting_notes')
+                        ->label('Opening Meeting Notes')
+                        ->rows(3)
+                        ->columnSpanFull(),
+
+                    Forms\Components\Textarea::make('closing_meeting_notes')
+                        ->label('Closing Meeting Notes')
+                        ->rows(3)
+                        ->columnSpanFull(),
+                ]),
+
+            // --------------------------------------------------------
+            // SECTION 4: Summary & Report
             // --------------------------------------------------------
             Forms\Components\Section::make('Summary & Report')
                 ->description('Overall audit conclusion and supporting report file.')
@@ -168,6 +213,29 @@ class InternalAuditResource extends Resource
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                         ->openable()
                         ->columnSpanFull(),
+                ]),
+
+            // --------------------------------------------------------
+            // SECTION 5: Closure Verification (ISO 19011 §6.6)
+            // --------------------------------------------------------
+            Forms\Components\Section::make('Closure Verification')
+                ->description('Confirm all findings are resolved and the audit is formally closed.')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\Textarea::make('closure_verification_notes')
+                        ->label('Closure Verification Notes')
+                        ->rows(3)
+                        ->columnSpanFull(),
+
+                    Forms\Components\Select::make('closure_verified_by_id')
+                        ->label('Closure Verified By')
+                        ->options(User::orderBy('name')->pluck('name', 'id'))
+                        ->searchable()
+                        ->nullable(),
+
+                    Forms\Components\DatePicker::make('closure_date')
+                        ->label('Closure Date')
+                        ->native(false),
                 ]),
         ]);
     }
