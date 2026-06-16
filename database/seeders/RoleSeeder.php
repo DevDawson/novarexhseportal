@@ -48,8 +48,11 @@ class RoleSeeder extends Seeder
             // Project Deliverables
             'manage deliverables',
 
-            // HIRA
+            // HIRA / HAZID
             'manage hazards',
+
+            // HAZOP (Quantitative Risk Assessment)
+            'manage hazop',
 
             // Internal Audit Module
             'manage audits',
@@ -111,7 +114,7 @@ class RoleSeeder extends Seeder
         $hseMgr->syncPermissions([
             'view dashboard',
             'view hse', 'manage incidents', 'manage risks', 'manage risk_register',
-            'manage esia_audits', 'manage permits', 'manage hazards', 'manage audits',
+            'manage esia_audits', 'manage permits', 'manage hazards', 'manage hazop', 'manage audits',
             'manage capa',
             'manage esia_screenings', 'manage esia_impacts', 'manage esia_mitigation',
             'manage esia_reports', 'manage esia_submissions',
@@ -185,7 +188,7 @@ class RoleSeeder extends Seeder
         $hse->syncPermissions([
             'view dashboard',
             'view hse', 'manage incidents', 'manage risks', 'manage risk_register',
-            'manage esia_audits', 'manage permits', 'manage hazards', 'manage audits',
+            'manage esia_audits', 'manage permits', 'manage hazards', 'manage hazop', 'manage audits',
             'manage capa',
             'manage esia_screenings', 'manage esia_impacts', 'manage esia_mitigation',
             'manage esia_reports', 'manage esia_submissions',
