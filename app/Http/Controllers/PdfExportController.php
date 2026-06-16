@@ -9,6 +9,7 @@ use App\Models\GovernancePolicy;
 use App\Models\HazardRegister;
 use App\Models\HazopStudy;
 use App\Models\Incident;
+use App\Models\PermitToWork;
 use App\Models\InternalAudit;
 use App\Models\SocialIndicator;
 use App\Services\HazopScoringService;
@@ -171,6 +172,41 @@ class PdfExportController extends Controller
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download("{$study->study_ref}-Report-" . now()->format('Ymd') . '.pdf');
+    }
+
+    // ----------------------------------------------------------------
+    // PTW Permit Certificate
+    // ----------------------------------------------------------------
+
+    public function ptwPermit(PermitToWork $permit): Response
+    {
+        abort_unless(auth()->user()?->can('manage permits'), 403);
+
+        $permit->load([
+            'project',
+            'department',
+            'requestedBy',
+            'issuedBy',
+            'areaAuthority',
+            'supervisor',
+            'finalApprovedBy',
+            'completionConfirmedBy',
+            'closeoutBy',
+            'linkedHazard',
+            'linkedHazopNode.study',
+            'linkedIncident',
+        ]);
+
+        $checklistItems = $permit->checklistItems()->get();
+        $approvals      = $permit->approvals()->with('approver')->get();
+
+        $pdf = Pdf::loadView('pdf.ptw-permit', [
+            'permit'         => $permit,
+            'checklistItems' => $checklistItems,
+            'approvals'      => $approvals,
+        ])->setPaper('a4');
+
+        return $pdf->download("{$permit->permit_number}-Certificate-" . now()->format('Ymd') . '.pdf');
     }
 
     // ----------------------------------------------------------------

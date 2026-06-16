@@ -37,4 +37,7 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
 
     Route::get('/hazop/procedure',         [PdfExportController::class, 'hazopProcedure'])
         ->name('hazop.procedure');
+
+    Route::get('/ptw/permit/{permit}',     [PdfExportController::class, 'ptwPermit'])
+        ->name('ptw.permit');
 });

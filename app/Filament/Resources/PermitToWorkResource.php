@@ -3,6 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PermitToWorkResource\Pages;
+use App\Filament\Resources\PermitToWorkResource\RelationManagers;
+use App\Models\HazardRegister;
+use App\Models\HazopNode;
 use App\Models\PermitToWork;
 use App\Services\PermitToWorkService;
 use Filament\Forms;
@@ -13,7 +16,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 class PermitToWorkResource extends Resource
 {
@@ -29,37 +31,26 @@ class PermitToWorkResource extends Resource
 
     protected static ?int $navigationSort = 15;
 
+    // =================================================================
+    // Permissions
+    // =================================================================
+
     public static function canViewAny(): bool
     {
         return auth()->check();
     }
 
-    /**
-     * Anyone can request a permit (Permit Holder / Performer).
-     */
     public static function canCreate(): bool
     {
         return auth()->check();
     }
 
-    /**
-     * The original requester can still edit while in Draft. Once
-     * submitted, only MD / HSE staff (Issuer / Area Authority role)
-     * can progress the workflow (approve, activate, suspend, close).
-     */
     public static function canEdit($record): bool
     {
         $user = auth()->user();
-
-        if (! $user) {
-            return false;
-        }
-
-        if ($record->status === 'draft' && $record->requested_by === $user->id) {
-            return true;
-        }
-
-        return $user->hasAnyRole(['md', 'hse_staff']);
+        if (! $user) return false;
+        if ($record->status === 'draft' && $record->requested_by === $user->id) return true;
+        return $user->hasAnyRole(['md', 'hse_staff', 'hse_manager']);
     }
 
     public static function canDelete($record): bool
@@ -67,15 +58,19 @@ class PermitToWorkResource extends Resource
         return auth()->user()?->hasRole('md') ?? false;
     }
 
+    // =================================================================
+    // Form
+    // =================================================================
+
     public static function form(Form $form): Form
     {
         return $form->schema([
 
-            // ============================================================
-            // PERMIT DETAILS
-            // ============================================================
-            Forms\Components\Section::make('Permit Details')
-                ->columns(2)
+            // --------------------------------------------------------
+            // SECTION 1 — Permit Information
+            // --------------------------------------------------------
+            Forms\Components\Section::make('1. Permit Information')
+                ->columns(3)
                 ->schema([
                     Forms\Components\TextInput::make('permit_number')
                         ->label('Permit Number')
@@ -91,48 +86,103 @@ class PermitToWorkResource extends Resource
                         ->native(false)
                         ->live()
                         ->afterStateUpdated(function (string $state, Set $set) {
-                            $set('isolation_required', PermitToWorkService::requiresIsolationByDefault($state));
-                            $set('gas_test_required', PermitToWorkService::requiresGasTestByDefault($state));
+                            $set('isolation_required',        PermitToWorkService::requiresIsolationByDefault($state));
+                            $set('gas_test_required',         PermitToWorkService::requiresGasTestByDefault($state));
+                            $set('fire_watch_required',       PermitToWorkService::requiresFireWatchByDefault($state));
+                            $set('barricading_required',      PermitToWorkService::requiresBarricadingByDefault($state));
+                            $set('emergency_standby_required',PermitToWorkService::requiresEmergencyStandbyByDefault($state));
                         }),
+
+                    Forms\Components\Select::make('status')
+                        ->options(PermitToWork::STATUS_LABELS)
+                        ->default('draft')
+                        ->required()
+                        ->native(false)
+                        ->live(),
+
+                    Forms\Components\TextInput::make('work_order_id')
+                        ->label('Work Order / Job No.')
+                        ->maxLength(100)
+                        ->placeholder('WO-2024-0001'),
+
+                    Forms\Components\Placeholder::make('risk_badge')
+                        ->label('Risk Classification')
+                        ->content(function (Get $get): string {
+                            $l = (int) $get('likelihood');
+                            $s = (int) $get('severity');
+                            $score = ($l > 0 && $s > 0) ? $l * $s : 0;
+                            $type = $get('permit_type') ?? 'general';
+                            $class = $score > 0
+                                ? PermitToWorkService::riskClassification($score, $type)
+                                : '—';
+                            return $score > 0
+                                ? strtoupper($class) . " (L{$l} × S{$s} = {$score})"
+                                : 'Set Likelihood & Severity below';
+                        }),
+                ]),
+
+            // --------------------------------------------------------
+            // SECTION 2 — Location & Timing
+            // --------------------------------------------------------
+            Forms\Components\Section::make('2. Location & Timing')
+                ->columns(3)
+                ->schema([
+                    Forms\Components\TextInput::make('location')
+                        ->label('Work Location / Equipment Tag')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpan(2),
+
+                    Forms\Components\TextInput::make('site_area')
+                        ->label('Site Area / Zone')
+                        ->maxLength(150)
+                        ->placeholder('e.g. Process Area 3, Tank Farm B'),
 
                     Forms\Components\Select::make('project_id')
                         ->label('Project (if applicable)')
                         ->relationship('project', 'title')
                         ->searchable()
                         ->preload()
-                        ->placeholder('Company premises / not project specific'),
+                        ->placeholder('Company premises / not project-specific'),
 
-                    Forms\Components\TextInput::make('location')
-                        ->label('Location / Site / Equipment')
-                        ->required()
-                        ->maxLength(255),
+                    Forms\Components\Select::make('department_id')
+                        ->label('Responsible Department')
+                        ->relationship('department', 'name')
+                        ->searchable()
+                        ->preload(),
 
-                    Forms\Components\Textarea::make('description')
-                        ->label('Description of Work')
-                        ->required()
-                        ->rows(2)
-                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('duration_estimate')
+                        ->label('Estimated Duration (hours)')
+                        ->numeric()
+                        ->minValue(0.5)
+                        ->placeholder('8'),
 
                     Forms\Components\DateTimePicker::make('valid_from')
-                        ->label('Valid From')
+                        ->label('Proposed Start')
                         ->native(false)
                         ->seconds(false)
                         ->default(now())
                         ->required(),
 
                     Forms\Components\DateTimePicker::make('valid_to')
-                        ->label('Valid To')
+                        ->label('Expected Completion')
                         ->native(false)
                         ->seconds(false)
                         ->default(now()->addHours(8))
                         ->required()
                         ->after('valid_from'),
+
+                    Forms\Components\Textarea::make('description')
+                        ->label('Description of Work')
+                        ->required()
+                        ->rows(2)
+                        ->columnSpanFull(),
                 ]),
 
-            // ============================================================
-            // PEOPLE
-            // ============================================================
-            Forms\Components\Section::make('People')
+            // --------------------------------------------------------
+            // SECTION 3 — Personnel
+            // --------------------------------------------------------
+            Forms\Components\Section::make('3. Personnel')
                 ->columns(3)
                 ->schema([
                     Forms\Components\Select::make('requested_by')
@@ -141,104 +191,198 @@ class PermitToWorkResource extends Resource
                         ->searchable()
                         ->preload()
                         ->default(fn () => auth()->id())
-                        ->required()
-                        ->helperText('The person/team responsible for carrying out the work.'),
+                        ->required(),
+
+                    Forms\Components\Select::make('supervisor_id')
+                        ->label('Work Supervisor')
+                        ->relationship('supervisor', 'name')
+                        ->searchable()
+                        ->preload(),
 
                     Forms\Components\Select::make('issued_by')
                         ->label('Issuer / Authorizer')
                         ->relationship('issuedBy', 'name')
                         ->searchable()
-                        ->preload()
-                        ->helperText('Approves and issues the permit.'),
+                        ->preload(),
 
                     Forms\Components\Select::make('area_authority_id')
                         ->label('Area Authority / Safety Officer')
                         ->relationship('areaAuthority', 'name')
                         ->searchable()
-                        ->preload()
-                        ->helperText('Co-signs for high-risk permits (confined space, hot work, electrical).'),
+                        ->preload(),
+
+                    Forms\Components\TextInput::make('contractor_company')
+                        ->label('Contractor Company')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('contractor_name')
+                        ->label('Contractor Representative')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('number_of_workers')
+                        ->label('Number of Workers')
+                        ->numeric()
+                        ->minValue(1)
+                        ->default(1),
                 ]),
 
-            // ============================================================
-            // HAZARDS & CONTROLS
-            // ============================================================
-            Forms\Components\Section::make('Hazards & Controls')
-                ->columns(1)
+            // --------------------------------------------------------
+            // SECTION 4 — Risk Assessment
+            // --------------------------------------------------------
+            Forms\Components\Section::make('4. Risk Assessment')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\Select::make('linked_hazard_id')
+                        ->label('Linked HAZID Register Entry')
+                        ->options(
+                            HazardRegister::query()
+                                ->whereNotIn('status', ['closed', 'cancelled'])
+                                ->get()
+                                ->mapWithKeys(fn ($h) => [$h->id => "[{$h->hazard_id}] {$h->hazard_description}"])
+                        )
+                        ->searchable()
+                        ->placeholder('Select from HAZID register (optional)'),
+
+                    Forms\Components\Select::make('linked_hazop_node_id')
+                        ->label('Linked HAZOP Node')
+                        ->options(
+                            HazopNode::query()
+                                ->with('study')
+                                ->whereNotIn('status', ['closed'])
+                                ->get()
+                                ->mapWithKeys(fn ($n) => [
+                                    $n->id => "[{$n->study?->study_ref}] Node {$n->node_number}: {$n->deviation}",
+                                ])
+                        )
+                        ->searchable()
+                        ->placeholder('Link to a HAZOP deviation (optional)'),
+
+                    Forms\Components\Grid::make(3)->schema([
+                        Forms\Components\Select::make('likelihood')
+                            ->label('Likelihood (L)')
+                            ->options([
+                                1 => '1 — Rare',
+                                2 => '2 — Unlikely',
+                                3 => '3 — Possible',
+                                4 => '4 — Likely',
+                                5 => '5 — Almost Certain',
+                            ])
+                            ->native(false)
+                            ->live()
+                            ->afterStateUpdated(fn (Get $get, Set $set) => self::recalcRisk($get, $set)),
+
+                        Forms\Components\Select::make('severity')
+                            ->label('Severity (S)')
+                            ->options([
+                                1 => '1 — Negligible',
+                                2 => '2 — Minor',
+                                3 => '3 — Moderate',
+                                4 => '4 — Major',
+                                5 => '5 — Catastrophic',
+                            ])
+                            ->native(false)
+                            ->live()
+                            ->afterStateUpdated(fn (Get $get, Set $set) => self::recalcRisk($get, $set)),
+
+                        Forms\Components\Placeholder::make('risk_score_preview')
+                            ->label('Risk Score Preview')
+                            ->content(function (Get $get): string {
+                                $l = (int) $get('likelihood');
+                                $s = (int) $get('severity');
+                                if (! $l || ! $s) return '—';
+                                $score = $l * $s;
+                                $class = PermitToWorkService::riskClassification($score, $get('permit_type') ?? 'general');
+                                $level = strtoupper($class);
+                                return "Score: {$score} → {$level}";
+                            }),
+                    ])->columnSpanFull(),
+
+                    Forms\Components\Hidden::make('risk_score'),
+                    Forms\Components\Hidden::make('risk_classification'),
+                ]),
+
+            // --------------------------------------------------------
+            // SECTION 5 — Hazards & Controls
+            // --------------------------------------------------------
+            Forms\Components\Section::make('5. Hazards & Controls')
                 ->schema([
                     Forms\Components\Textarea::make('hazards_identified')
                         ->label('Hazards Identified')
-                        ->rows(2),
+                        ->rows(3)
+                        ->columnSpanFull(),
 
                     Forms\Components\Textarea::make('precautions_taken')
                         ->label('Precautions / Control Measures')
-                        ->rows(2),
+                        ->rows(3)
+                        ->columnSpanFull(),
 
                     Forms\Components\CheckboxList::make('ppe_required')
                         ->label('PPE Required')
                         ->options(PermitToWorkService::ppeOptions())
                         ->columns(3)
-                        ->bulkToggleable(),
-
-                    Forms\Components\Textarea::make('emergency_procedures')
-                        ->label('Emergency Procedures / Rescue Plan')
-                        ->rows(2),
+                        ->bulkToggleable()
+                        ->columnSpanFull(),
                 ]),
 
-            // ============================================================
-            // ISOLATION (Electrical Isolation / Confined Space / Hot Work)
-            // ============================================================
-            Forms\Components\Section::make('Isolation (Lock-Out / Tag-Out)')
-                ->description('Required for Electrical Isolation and Confined Space permits - confirm equipment is isolated and locked out before work begins.')
-                ->columns(1)
+            // --------------------------------------------------------
+            // SECTION 6 — Safety Controls
+            // --------------------------------------------------------
+            Forms\Components\Section::make('6. Safety Controls & Verification')
+                ->columns(2)
                 ->schema([
+                    // LOTO / Isolation
                     Forms\Components\Toggle::make('isolation_required')
-                        ->label('Isolation / LOTO Required for this Permit')
-                        ->live(),
+                        ->label('Isolation / LOTO Required')
+                        ->live()
+                        ->columnSpanFull(),
 
                     Forms\Components\Textarea::make('isolation_details')
-                        ->label('Isolation Points / LOTO Details')
+                        ->label('LOTO Details (Lock/Tag Numbers, Isolation Points)')
                         ->rows(2)
-                        ->visible(fn (Get $get) => $get('isolation_required'))
-                        ->helperText('List each isolation point, lock/tag number, and the authorized person holding the key.'),
-                ]),
+                        ->visible(fn (Get $get) => (bool) $get('isolation_required'))
+                        ->columnSpanFull(),
 
-            // ============================================================
-            // GAS TESTING (Confined Space / Hot Work)
-            // ============================================================
-            Forms\Components\Section::make('Gas Testing')
-                ->description('Required for Confined Space Entry and Hot Work in enclosed areas - record atmospheric test results before entry/work begins.')
-                ->columns(1)
-                ->schema([
+                    Forms\Components\Toggle::make('loto_verified')
+                        ->label('LOTO / Isolation Verified')
+                        ->visible(fn (Get $get) => (bool) $get('isolation_required')),
+
+                    Forms\Components\Placeholder::make('loto_note')
+                        ->label('')
+                        ->content('Use the LOTO Isolation Records tab below to log each individual isolation point.')
+                        ->visible(fn (Get $get) => (bool) $get('isolation_required')),
+
+                    // Gas Testing
                     Forms\Components\Toggle::make('gas_test_required')
-                        ->label('Gas Test Required for this Permit')
-                        ->live(),
+                        ->label('Gas Test Required')
+                        ->live()
+                        ->columnSpanFull(),
 
                     Forms\Components\Grid::make(4)
-                        ->visible(fn (Get $get) => $get('gas_test_required'))
+                        ->visible(fn (Get $get) => (bool) $get('gas_test_required'))
                         ->schema([
                             Forms\Components\TextInput::make('gas_test_results.o2')
-                                ->label('Oxygen (O₂) %')
+                                ->label('O₂ %')
                                 ->placeholder('20.9')
-                                ->helperText('Safe: 19.5 - 23.5%'),
+                                ->helperText('Safe: 19.5–23.5%'),
 
                             Forms\Components\TextInput::make('gas_test_results.lel')
                                 ->label('LEL %')
                                 ->placeholder('0')
-                                ->helperText('Safe: below 10%'),
+                                ->helperText('Safe: < 10%'),
 
                             Forms\Components\TextInput::make('gas_test_results.h2s')
                                 ->label('H₂S (ppm)')
                                 ->placeholder('0')
-                                ->helperText('Safe: below 10 ppm'),
+                                ->helperText('Safe: < 10 ppm'),
 
                             Forms\Components\TextInput::make('gas_test_results.co')
                                 ->label('CO (ppm)')
                                 ->placeholder('0')
-                                ->helperText('Safe: below 35 ppm'),
-                        ]),
+                                ->helperText('Safe: < 35 ppm'),
+                        ])->columnSpanFull(),
 
                     Forms\Components\Grid::make(2)
-                        ->visible(fn (Get $get) => $get('gas_test_required'))
+                        ->visible(fn (Get $get) => (bool) $get('gas_test_required'))
                         ->schema([
                             Forms\Components\TextInput::make('gas_test_results.tested_by')
                                 ->label('Tested By'),
@@ -247,14 +391,51 @@ class PermitToWorkResource extends Resource
                                 ->label('Test Date/Time')
                                 ->native(false)
                                 ->seconds(false),
-                        ]),
+                        ])->columnSpanFull(),
+
+                    Forms\Components\Toggle::make('gas_testing_verified')
+                        ->label('Gas Test Results Verified & Safe')
+                        ->visible(fn (Get $get) => (bool) $get('gas_test_required')),
+
+                    // Fire watch
+                    Forms\Components\Toggle::make('fire_watch_required')
+                        ->label('Fire Watch Required')
+                        ->live(),
+
+                    Forms\Components\Toggle::make('fire_watch_confirmed')
+                        ->label('Fire Watch Confirmed in Place')
+                        ->visible(fn (Get $get) => (bool) $get('fire_watch_required')),
+
+                    // Barricading
+                    Forms\Components\Toggle::make('barricading_required')
+                        ->label('Barricading / Exclusion Zone Required')
+                        ->live(),
+
+                    Forms\Components\Toggle::make('barricading_confirmed')
+                        ->label('Barricading Confirmed in Place')
+                        ->visible(fn (Get $get) => (bool) $get('barricading_required')),
+
+                    // Emergency standby
+                    Forms\Components\Toggle::make('emergency_standby_required')
+                        ->label('Emergency Standby Required')
+                        ->live(),
+
+                    Forms\Components\Toggle::make('emergency_standby_confirmed')
+                        ->label('Emergency Standby Confirmed in Place')
+                        ->visible(fn (Get $get) => (bool) $get('emergency_standby_required')),
+
+                    // Emergency procedures
+                    Forms\Components\Textarea::make('emergency_procedures')
+                        ->label('Emergency Procedures / Rescue Plan')
+                        ->rows(2)
+                        ->columnSpanFull(),
                 ]),
 
-            // ============================================================
-            // PERMIT CHECKLIST
-            // ============================================================
-            Forms\Components\Section::make('Permit Checklist')
-                ->description('Pre-condition checks that must be verified before the permit is issued.')
+            // --------------------------------------------------------
+            // SECTION 7 — Permit Checklist
+            // --------------------------------------------------------
+            Forms\Components\Section::make('7. Permit Checklist')
+                ->description('Pre-condition checks to be verified before the permit is issued.')
                 ->schema([
                     Forms\Components\Actions::make([
                         Forms\Components\Actions\Action::make('loadDefaultChecklist')
@@ -263,17 +444,14 @@ class PermitToWorkResource extends Resource
                             ->color('gray')
                             ->action(function (Get $get, Set $set) {
                                 $type = $get('permit_type');
-
-                                if (! $type) {
-                                    return;
-                                }
+                                if (! $type) return;
 
                                 $items = collect(PermitToWorkService::defaultChecklistItems($type))
                                     ->values()
                                     ->map(fn ($item, $index) => [
-                                        'item' => $item,
+                                        'item'       => $item,
                                         'is_checked' => false,
-                                        'remarks' => null,
+                                        'remarks'    => null,
                                         'sort_order' => $index,
                                     ])
                                     ->all();
@@ -305,49 +483,113 @@ class PermitToWorkResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
-            // ============================================================
-            // STATUS & CLOSEOUT
-            // ============================================================
-            Forms\Components\Section::make('Status & Closeout')
+            // --------------------------------------------------------
+            // SECTION 8 — Workflow & Approval
+            // --------------------------------------------------------
+            Forms\Components\Section::make('8. Workflow & Approval')
+                ->columns(3)
+                ->schema([
+                    Forms\Components\Select::make('current_approval_stage')
+                        ->label('Current Approval Stage')
+                        ->options(PermitToWork::APPROVAL_STAGE_LABELS)
+                        ->native(false)
+                        ->placeholder('Not yet in approval'),
+
+                    Forms\Components\Select::make('final_approved_by_id')
+                        ->label('Final Approved By')
+                        ->relationship('finalApprovedBy', 'name')
+                        ->searchable()
+                        ->preload(),
+
+                    Forms\Components\DateTimePicker::make('approved_at')
+                        ->label('Final Approval Date/Time')
+                        ->native(false)
+                        ->seconds(false),
+                ]),
+
+            // --------------------------------------------------------
+            // SECTION 9 — Closure
+            // --------------------------------------------------------
+            Forms\Components\Section::make('9. Closure & Completion')
                 ->columns(2)
                 ->schema([
-                    Forms\Components\Select::make('status')
-                        ->options(PermitToWork::STATUS_LABELS)
-                        ->default('draft')
-                        ->required()
-                        ->native(false)
-                        ->live()
-                        ->helperText('Draft -> Submitted -> Approved -> Active -> Closed. Use Suspended/Cancelled/Expired as needed.'),
-
                     Forms\Components\Textarea::make('suspension_reason')
                         ->label('Suspension Reason')
                         ->rows(2)
                         ->visible(fn (Get $get) => $get('status') === 'suspended')
-                        ->required(fn (Get $get) => $get('status') === 'suspended'),
+                        ->required(fn (Get $get) => $get('status') === 'suspended')
+                        ->columnSpanFull(),
+
+                    Forms\Components\DateTimePicker::make('actual_start')
+                        ->label('Actual Start Date/Time')
+                        ->native(false)
+                        ->seconds(false),
+
+                    Forms\Components\DateTimePicker::make('actual_completion')
+                        ->label('Actual Completion Date/Time')
+                        ->native(false)
+                        ->seconds(false),
+
+                    Forms\Components\Textarea::make('final_inspection_notes')
+                        ->label('Final Site Inspection Notes')
+                        ->rows(2)
+                        ->columnSpanFull(),
 
                     Forms\Components\Textarea::make('closeout_notes')
                         ->label('Closeout Notes')
                         ->rows(2)
-                        ->visible(fn (Get $get) => $get('status') === 'closed')
                         ->columnSpanFull(),
 
                     Forms\Components\Select::make('closeout_by')
-                        ->label('Closed By')
+                        ->label('Closed Out By')
                         ->relationship('closeoutBy', 'name')
                         ->searchable()
                         ->preload()
-                        ->visible(fn (Get $get) => $get('status') === 'closed')
                         ->default(fn () => auth()->id()),
 
                     Forms\Components\DateTimePicker::make('closeout_at')
                         ->label('Closeout Date/Time')
                         ->native(false)
                         ->seconds(false)
-                        ->visible(fn (Get $get) => $get('status') === 'closed')
                         ->default(now()),
+
+                    Forms\Components\Select::make('completion_confirmed_by_id')
+                        ->label('Completion Confirmed By')
+                        ->relationship('completionConfirmedBy', 'name')
+                        ->searchable()
+                        ->preload(),
+
+                    Forms\Components\DatePicker::make('completion_date')
+                        ->label('Completion Date')
+                        ->native(false),
+
+                    Forms\Components\Select::make('linked_incident_id')
+                        ->label('Linked Incident (if any)')
+                        ->relationship('linkedIncident', 'incident_ref')
+                        ->searchable()
+                        ->placeholder('No incident linked'),
                 ]),
         ]);
     }
+
+    // =================================================================
+    // Risk score recalculation helper
+    // =================================================================
+
+    protected static function recalcRisk(Get $get, Set $set): void
+    {
+        $l = (int) $get('likelihood');
+        $s = (int) $get('severity');
+        if ($l > 0 && $s > 0) {
+            $score = $l * $s;
+            $set('risk_score', $score);
+            $set('risk_classification', PermitToWorkService::riskClassification($score, $get('permit_type') ?? 'general'));
+        }
+    }
+
+    // =================================================================
+    // Table
+    // =================================================================
 
     public static function table(Table $table): Table
     {
@@ -359,23 +601,28 @@ class PermitToWorkResource extends Resource
                     ->sortable()
                     ->weight('bold'),
 
-                Tables\Columns\BadgeColumn::make('permit_type')
+                Tables\Columns\TextColumn::make('permit_type')
                     ->label('Type')
+                    ->badge()
                     ->formatStateUsing(fn (string $state): string => PermitToWork::PERMIT_TYPE_LABELS[$state] ?? $state)
-                    ->colors([
-                        'danger' => ['hot_work', 'confined_space', 'electrical_isolation'],
-                        'warning' => ['working_at_height', 'excavation', 'lifting_operations'],
-                        'gray' => ['cold_work', 'general'],
-                    ]),
+                    ->color(fn (string $state): string => match ($state) {
+                        'hot_work', 'confined_space', 'electrical_isolation',
+                        'pressure_system', 'chemical_handling', 'radiation_work' => 'danger',
+                        'working_at_height', 'excavation', 'lifting_operations', 'commissioning' => 'warning',
+                        default => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('location')
                     ->searchable()
+                    ->limit(30)
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('project.title')
-                    ->label('Project')
-                    ->placeholder('Company premises')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('risk_classification')
+                    ->label('Risk')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => strtoupper($state ?? '—'))
+                    ->color(fn (?string $state): string => PermitToWork::RISK_CLASSIFICATION_COLORS[$state] ?? 'gray')
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('valid_from')
                     ->label('Valid From')
@@ -386,24 +633,24 @@ class PermitToWorkResource extends Resource
                     ->label('Valid To')
                     ->dateTime('d M Y H:i')
                     ->sortable()
-                    ->color(fn (PermitToWork $record) => $record->is_overdue ? 'danger' : null)
-                    ->weight(fn (PermitToWork $record) => $record->is_overdue ? 'bold' : null),
+                    ->color(fn (PermitToWork $record): ?string => $record->is_overdue ? 'danger' : null)
+                    ->weight(fn (PermitToWork $record): ?string => $record->is_overdue ? 'bold' : null),
 
                 Tables\Columns\TextColumn::make('requestedBy.name')
                     ->label('Requested By')
                     ->toggleable(),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('current_approval_stage')
+                    ->label('Approval Stage')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => PermitToWork::APPROVAL_STAGE_LABELS[$state] ?? ($state ?? '—'))
+                    ->color('info')
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
                     ->formatStateUsing(fn (string $state): string => PermitToWork::STATUS_LABELS[$state] ?? $state)
-                    ->colors([
-                        'gray' => 'draft',
-                        'info' => 'submitted',
-                        'primary' => 'approved',
-                        'success' => 'active',
-                        'warning' => ['suspended', 'expired'],
-                        'secondary' => 'closed',
-                        'danger' => 'cancelled',
-                    ]),
+                    ->color(fn (string $state): string => PermitToWork::STATUS_COLORS[$state] ?? 'gray'),
             ])
             ->defaultSort('valid_from', 'desc')
             ->filters([
@@ -414,20 +661,37 @@ class PermitToWorkResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->options(PermitToWork::STATUS_LABELS),
 
+                Tables\Filters\SelectFilter::make('risk_classification')
+                    ->label('Risk Level')
+                    ->options(['high' => 'High', 'medium' => 'Medium', 'low' => 'Low']),
+
                 Tables\Filters\Filter::make('overdue')
                     ->label('Overdue Closeout')
-                    ->query(function (Builder $query): Builder {
-                        return $query
-                            ->whereIn('status', ['approved', 'active', 'suspended'])
-                            ->where('valid_to', '<', now());
-                    }),
+                    ->query(fn (Builder $query) => $query
+                        ->whereIn('status', ['approved', 'active', 'suspended'])
+                        ->where('valid_to', '<', now())),
 
                 Tables\Filters\SelectFilter::make('project_id')
                     ->label('Project')
                     ->relationship('project', 'title')
                     ->searchable(),
             ])
+            ->headerActions([
+                Tables\Actions\Action::make('downloadPdf')
+                    ->label('Download PTW Certificate')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->url(fn (PermitToWork $record) => route('pdf.ptw.permit', $record))
+                    ->openUrlInNewTab()
+                    ->hidden(),
+            ])
             ->actions([
+                Tables\Actions\Action::make('pdf')
+                    ->label('PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->url(fn (PermitToWork $record) => route('pdf.ptw.permit', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
@@ -439,13 +703,31 @@ class PermitToWorkResource extends Resource
             ]);
     }
 
+    // =================================================================
+    // Relation Managers
+    // =================================================================
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ApprovalsRelationManager::class,
+            RelationManagers\IsolationRecordsRelationManager::class,
+            RelationManagers\ToolboxTalksRelationManager::class,
+            RelationManagers\InspectionsRelationManager::class,
+        ];
+    }
+
+    // =================================================================
+    // Pages
+    // =================================================================
+
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPermitToWorks::route('/'),
+            'index'  => Pages\ListPermitToWorks::route('/'),
             'create' => Pages\CreatePermitToWork::route('/create'),
-            'view' => Pages\ViewPermitToWork::route('/{record}'),
-            'edit' => Pages\EditPermitToWork::route('/{record}/edit'),
+            'view'   => Pages\ViewPermitToWork::route('/{record}'),
+            'edit'   => Pages\EditPermitToWork::route('/{record}/edit'),
         ];
     }
 }
