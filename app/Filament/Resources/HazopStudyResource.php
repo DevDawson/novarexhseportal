@@ -271,7 +271,21 @@ class HazopStudyResource extends Resource
                     ->toggle(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->headerActions([
+                Tables\Actions\Action::make('download_procedure')
+                    ->label('Download HAZOP Procedure (ISO)')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->url(fn () => route('pdf.hazop.procedure'))
+                    ->openUrlInNewTab(),
+            ])
             ->actions([
+                Tables\Actions\Action::make('export_pdf')
+                    ->label('Study Report')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->url(fn ($record) => route('pdf.hazop.study', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

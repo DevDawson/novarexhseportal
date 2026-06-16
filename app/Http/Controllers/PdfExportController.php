@@ -7,9 +7,11 @@ use App\Models\EsgTarget;
 use App\Models\Grievance;
 use App\Models\GovernancePolicy;
 use App\Models\HazardRegister;
+use App\Models\HazopStudy;
 use App\Models\Incident;
 use App\Models\InternalAudit;
 use App\Models\SocialIndicator;
+use App\Services\HazopScoringService;
 use App\Services\RiskScoringService;
 use App\Models\EsiaBaselineData;
 use App\Models\EsiaImpactAssessment;
@@ -140,5 +142,47 @@ class PdfExportController extends Controller
             ->setPaper('a4');
 
         return $pdf->download('ESG-Summary-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    // ----------------------------------------------------------------
+    // HAZOP Study Report (specific study + all nodes + procedure)
+    // ----------------------------------------------------------------
+
+    public function hazopStudy(HazopStudy $study): Response
+    {
+        abort_unless(auth()->user()?->can('manage hazop'), 403);
+
+        $study->load([
+            'project',
+            'department',
+            'facilitator',
+            'reviewedBy',
+            'approvedBy',
+        ]);
+
+        $nodes = $study->nodes()
+            ->with(['riskOwner', 'department', 'closureVerifiedBy'])
+            ->orderBy('node_number')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.hazop-study', [
+            'study' => $study,
+            'nodes' => $nodes,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download("{$study->study_ref}-Report-" . now()->format('Ymd') . '.pdf');
+    }
+
+    // ----------------------------------------------------------------
+    // HAZOP Procedure Document (static ISO-aligned procedure template)
+    // ----------------------------------------------------------------
+
+    public function hazopProcedure(): Response
+    {
+        abort_unless(auth()->user()?->can('manage hazop'), 403);
+
+        $pdf = Pdf::loadView('pdf.hazop-procedure')->setPaper('a4');
+
+        return $pdf->download('NOVAREX-HAZOP-Procedure-PRO-HSE-HAZOP-001-' . now()->format('Ymd') . '.pdf');
     }
 }

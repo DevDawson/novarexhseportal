@@ -31,4 +31,10 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
 
     Route::get('/esia/report/{report}',    [PdfExportController::class, 'esiaReport'])
         ->name('esia.report');
+
+    Route::get('/hazop/study/{study}',     [PdfExportController::class, 'hazopStudy'])
+        ->name('hazop.study');
+
+    Route::get('/hazop/procedure',         [PdfExportController::class, 'hazopProcedure'])
+        ->name('hazop.procedure');
 });
