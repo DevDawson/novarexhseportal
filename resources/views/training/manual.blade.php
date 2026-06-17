@@ -111,7 +111,7 @@
   <div class="cover-title">System Training Manual</div>
   <div class="cover-sub">Complete step-by-step guide for all roles — covering every module, workflow, and feature of the PortalHSE platform.</div>
   <div class="cover-meta">
-    <span>Version 1.0 — June 2026</span>
+    <span>Version 2.0 — June 2026</span>
     <span>11 Modules · All Roles Covered</span>
     <span>Confidential — Internal Use Only</span>
   </div>
