@@ -1160,7 +1160,7 @@
 
 <!-- ═══════════════════ FOOTER ═══════════════════ -->
 <div style="background:#0f172a;color:#94a3b8;padding:24px 60px;font-size:8.5pt;display:flex;justify-content:space-between;align-items:center">
-  <span>PortalHSE Training Manual · Version 1.0 · June 2026</span>
+  <span>PortalHSE Training Manual · Version 2.0 · June 2026</span>
   <span>Confidential — Internal Use Only · © {{ date('Y') }} PortalHSE</span>
 </div>
 
