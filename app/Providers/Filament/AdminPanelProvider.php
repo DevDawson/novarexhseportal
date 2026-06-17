@@ -29,6 +29,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -55,6 +56,20 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
+
+            ->navigationGroups([
+                NavigationGroup::make('HSE System'),
+                NavigationGroup::make('Incident Management'),
+                NavigationGroup::make('Risk Assessment (HAZID)'),
+                NavigationGroup::make('Risk Assessment (HAZOP)'),
+                NavigationGroup::make('HIRA'),
+                NavigationGroup::make('Permit to Work (PTW)'),
+                NavigationGroup::make('Environmental Management (EMS)'),
+                NavigationGroup::make('ESG Management'),
+                NavigationGroup::make('EIA / ESIA'),
+                NavigationGroup::make('Environmental Audit'),
+                NavigationGroup::make('Audit Management System'),
+            ])
 
             // Auto-discover Resources and Pages (fine).
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

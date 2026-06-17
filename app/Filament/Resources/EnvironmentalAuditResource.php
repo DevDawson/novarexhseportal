@@ -17,10 +17,10 @@ class EnvironmentalAuditResource extends Resource
 {
     protected static ?string $model = EnvironmentalAudit::class;
     protected static ?string $navigationIcon  = 'heroicon-o-magnifying-glass-circle';
-    protected static ?string $navigationGroup = 'Environmental Management';
+    protected static ?string $navigationGroup = 'Environmental Audit';
     protected static ?string $navigationLabel = 'Environmental Audits';
     protected static ?string $modelLabel      = 'Environmental Audit';
-    protected static ?int    $navigationSort  = 7;
+    protected static ?int    $navigationSort  = 1;
 
     public static function canViewAny(): bool { return auth()->user()?->can('manage esia_audits') ?? false; }
     public static function canCreate(): bool  { return auth()->user()?->can('manage esia_audits') ?? false; }

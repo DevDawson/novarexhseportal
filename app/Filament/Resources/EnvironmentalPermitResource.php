@@ -17,7 +17,7 @@ class EnvironmentalPermitResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-check';
 
-    protected static ?string $navigationGroup = 'Environmental Management';
+    protected static ?string $navigationGroup = 'Environmental Management (EMS)';
 
     protected static ?string $navigationLabel = 'Environmental Permits';
 

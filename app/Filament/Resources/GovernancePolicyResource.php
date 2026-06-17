@@ -15,7 +15,7 @@ class GovernancePolicyResource extends Resource
     protected static ?string $model = GovernancePolicy::class;
 
     protected static ?string $navigationIcon  = 'heroicon-o-document-text';
-    protected static ?string $navigationGroup = 'ESG';
+    protected static ?string $navigationGroup = 'ESG Management';
     protected static ?string $navigationLabel = 'Policy Register';
     protected static ?string $modelLabel      = 'Policy';
     protected static ?int    $navigationSort  = 5;

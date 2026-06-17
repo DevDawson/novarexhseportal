@@ -21,7 +21,7 @@ class HazardRegisterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shield-exclamation';
 
-    protected static ?string $navigationGroup = 'Risk Management';
+    protected static ?string $navigationGroup = 'HIRA';
 
     protected static ?string $navigationLabel = 'HAZID / HIRA';
 

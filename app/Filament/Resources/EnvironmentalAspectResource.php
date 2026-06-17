@@ -19,7 +19,7 @@ class EnvironmentalAspectResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Environmental Management';
+    protected static ?string $navigationGroup = 'Environmental Management (EMS)';
 
     protected static ?string $navigationLabel = 'Aspects & Impacts';
 

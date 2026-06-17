@@ -15,7 +15,7 @@ class EsgTargetResource extends Resource
     protected static ?string $model = EsgTarget::class;
 
     protected static ?string $navigationIcon  = 'heroicon-o-flag';
-    protected static ?string $navigationGroup = 'ESG';
+    protected static ?string $navigationGroup = 'ESG Management';
     protected static ?string $navigationLabel = 'ESG Targets';
     protected static ?string $modelLabel      = 'ESG Target';
     protected static ?int    $navigationSort  = 7;

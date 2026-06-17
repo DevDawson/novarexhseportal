@@ -17,7 +17,7 @@ class EnvironmentalMonitoringRecordResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationGroup = 'Environmental Management';
+    protected static ?string $navigationGroup = 'Environmental Management (EMS)';
 
     protected static ?string $navigationLabel = 'Monitoring Records';
 

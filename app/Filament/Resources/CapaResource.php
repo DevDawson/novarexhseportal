@@ -17,7 +17,7 @@ class CapaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path-rounded-square';
 
-    protected static ?string $navigationGroup = 'Risk Management';
+    protected static ?string $navigationGroup = 'HSE System';
 
     protected static ?string $navigationLabel = 'CAPA';
 
@@ -25,7 +25,7 @@ class CapaResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Corrective & Preventive Actions';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 2;
 
     public static function canViewAny(): bool
     {

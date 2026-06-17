@@ -15,7 +15,7 @@ class StakeholderEngagementResource extends Resource
     protected static ?string $model = StakeholderEngagement::class;
 
     protected static ?string $navigationIcon  = 'heroicon-o-chat-bubble-left-right';
-    protected static ?string $navigationGroup = 'ESG';
+    protected static ?string $navigationGroup = 'ESG Management';
     protected static ?string $navigationLabel = 'Engagement Log';
     protected static ?string $modelLabel      = 'Engagement';
     protected static ?int    $navigationSort  = 2;

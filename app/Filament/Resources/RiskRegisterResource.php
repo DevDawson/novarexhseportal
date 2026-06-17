@@ -18,7 +18,7 @@ class RiskRegisterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationGroup = 'Risk Management';
+    protected static ?string $navigationGroup = 'Risk Assessment (HAZID)';
 
     protected static ?string $navigationLabel = 'Risk Register';
 

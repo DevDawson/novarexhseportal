@@ -20,7 +20,7 @@ class HazopStudyResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-beaker';
 
-    protected static ?string $navigationGroup = 'Risk Management';
+    protected static ?string $navigationGroup = 'Risk Assessment (HAZOP)';
 
     protected static ?string $navigationLabel = 'HAZOP Studies';
 

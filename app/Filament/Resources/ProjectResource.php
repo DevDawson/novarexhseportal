@@ -17,7 +17,7 @@ class ProjectResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationGroup = 'HSE & Technical Operations';
+    protected static ?string $navigationGroup = 'HSE System';
 
     protected static ?int $navigationSort = 1;
 

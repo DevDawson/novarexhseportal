@@ -15,7 +15,7 @@ class SocialIndicatorResource extends Resource
     protected static ?string $model = SocialIndicator::class;
 
     protected static ?string $navigationIcon  = 'heroicon-o-chart-bar';
-    protected static ?string $navigationGroup = 'ESG';
+    protected static ?string $navigationGroup = 'ESG Management';
     protected static ?string $navigationLabel = 'Social Indicators';
     protected static ?string $modelLabel      = 'Social Indicator';
     protected static ?int    $navigationSort  = 4;

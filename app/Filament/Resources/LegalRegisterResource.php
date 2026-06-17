@@ -17,7 +17,7 @@ class LegalRegisterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-scale';
 
-    protected static ?string $navigationGroup = 'Environmental Management';
+    protected static ?string $navigationGroup = 'Environmental Management (EMS)';
 
     protected static ?string $navigationLabel = 'Legal & Compliance Register';
 

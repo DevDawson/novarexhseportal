@@ -17,7 +17,7 @@ class WasteTrackingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-trash';
 
-    protected static ?string $navigationGroup = 'Environmental Management';
+    protected static ?string $navigationGroup = 'Environmental Management (EMS)';
 
     protected static ?string $navigationLabel = 'Waste Tracking';
 

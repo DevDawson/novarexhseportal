@@ -15,7 +15,7 @@ class EthicsIncidentResource extends Resource
     protected static ?string $model = EthicsIncident::class;
 
     protected static ?string $navigationIcon  = 'heroicon-o-scale';
-    protected static ?string $navigationGroup = 'ESG';
+    protected static ?string $navigationGroup = 'ESG Management';
     protected static ?string $navigationLabel = 'Ethics Incidents';
     protected static ?string $modelLabel      = 'Ethics Incident';
     protected static ?int    $navigationSort  = 6;

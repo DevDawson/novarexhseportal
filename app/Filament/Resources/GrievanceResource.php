@@ -15,7 +15,7 @@ class GrievanceResource extends Resource
     protected static ?string $model = Grievance::class;
 
     protected static ?string $navigationIcon  = 'heroicon-o-megaphone';
-    protected static ?string $navigationGroup = 'ESG';
+    protected static ?string $navigationGroup = 'ESG Management';
     protected static ?string $navigationLabel = 'Grievances';
     protected static ?string $modelLabel      = 'Grievance';
     protected static ?int    $navigationSort  = 3;

@@ -23,13 +23,13 @@ class InternalAuditResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?string $navigationGroup = 'HSE & Technical Operations';
+    protected static ?string $navigationGroup = 'Audit Management System';
 
     protected static ?string $navigationLabel = 'Internal Audits';
 
     protected static ?string $modelLabel = 'Internal Audit';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 1;
 
     // ----------------------------------------------------------------
     // Access Control

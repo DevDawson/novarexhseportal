@@ -15,7 +15,7 @@ class StakeholderResource extends Resource
     protected static ?string $model = Stakeholder::class;
 
     protected static ?string $navigationIcon  = 'heroicon-o-users';
-    protected static ?string $navigationGroup = 'ESG';
+    protected static ?string $navigationGroup = 'ESG Management';
     protected static ?string $navigationLabel = 'Stakeholders';
     protected static ?string $modelLabel      = 'Stakeholder';
     protected static ?int    $navigationSort  = 1;

@@ -17,13 +17,13 @@ class LessonsLearnedResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-light-bulb';
 
-    protected static ?string $navigationGroup = 'HSE & Technical Operations';
+    protected static ?string $navigationGroup = 'HSE System';
 
     protected static ?string $navigationLabel = 'Lessons Learned';
 
     protected static ?string $modelLabel = 'Lesson Learned';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 3;
 
     public static function canViewAny(): bool
     {

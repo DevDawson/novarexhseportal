@@ -23,13 +23,13 @@ class PermitToWorkResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?string $navigationGroup = 'HSE & Technical Operations';
+    protected static ?string $navigationGroup = 'Permit to Work (PTW)';
 
     protected static ?string $navigationLabel = 'Permit to Work';
 
     protected static ?string $modelLabel = 'Permit to Work';
 
-    protected static ?int $navigationSort = 15;
+    protected static ?int $navigationSort = 1;
 
     // =================================================================
     // Permissions
