@@ -98,9 +98,11 @@
 <body>
 <div class="page">
 
+@include('filament.pdf.partials.letterhead')
+
 {{-- HEADER --}}
 <div class="header">
-  <div class="header-logo">NOVAREX</div>
+  <div class="header-logo">{{ \App\Models\Setting::companyName() }}</div>
   <div class="header-title">
     <h1>PERMIT TO WORK CERTIFICATE</h1>
     <p>ISO 45001:2018 Compliant — Authorised Work Permit System</p>

@@ -96,11 +96,12 @@
 <body>
 <div class="page">
 
+    @include('filament.pdf.partials.letterhead')
+
     {{-- HEADER --}}
     <div class="header">
         <div class="header-inner">
             <div class="logo-area">
-                <h1>NOVAREX</h1>
                 <p>Health, Safety &amp; Environment Management System</p>
             </div>
             <div class="doc-meta">

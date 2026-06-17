@@ -8,10 +8,7 @@
         .page { padding: 28px 32px; }
 
         /* Header */
-        .header { border-bottom: 3px solid #1d4ed8; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .logo-area h1 { font-size: 18px; font-weight: bold; color: #1d4ed8; letter-spacing: 1px; }
-        .logo-area p  { font-size: 9px; color: #6b7280; margin-top: 2px; }
-        .doc-meta { text-align: right; font-size: 9px; color: #6b7280; }
+        .doc-meta { text-align: right; font-size: 9px; color: #6b7280; margin-bottom: 6px; }
         .doc-meta .doc-title { font-size: 13px; font-weight: bold; color: #1a1a2e; }
 
         /* Section */
@@ -44,7 +41,7 @@
         .badge-gray     { background: #f3f4f6; color: #374151; }
 
         /* Footer */
-        .footer { border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 8px; font-size: 8px; color: #9ca3af; display: flex; justify-content: space-between; }
+        .footer { border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 8px; font-size: 8px; color: #9ca3af; display: table; width: 100%; }
 
         /* Signature row */
         .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 20px; }
@@ -54,24 +51,19 @@
 </head>
 <body>
 <div class="page">
-    <div class="header">
-        <div class="logo-area">
-            <h1>NOVAREX</h1>
-            <p>Health, Safety & Environment | Environmental, Social & Governance</p>
-        </div>
-        <div class="doc-meta">
-            <div class="doc-title">@yield('doc-title')</div>
-            <div>Generated: {{ now()->format('d M Y, H:i') }}</div>
-            <div>Ref: @yield('doc-ref')</div>
-        </div>
+    @include('filament.pdf.partials.letterhead')
+    <div class="doc-meta">
+        <div class="doc-title">@yield('doc-title')</div>
+        <div>Generated: {{ now()->format('d M Y, H:i') }}</div>
+        <div>Ref: @yield('doc-ref')</div>
     </div>
 
     @yield('content')
 
     <div class="footer">
-        <span>NOVAREX — Confidential</span>
-        <span>support@novarex.co.tz</span>
-        <span>Page 1</span>
+        <span>{{ \App\Models\Setting::companyName() }} — Confidential</span>
+        <span>{{ \App\Models\Setting::companyTagline() }}</span>
+        <span>Generated: {{ now()->format('d M Y') }}</span>
     </div>
 </div>
 </body>

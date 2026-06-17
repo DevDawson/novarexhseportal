@@ -55,7 +55,9 @@
 </head>
 <body>
 
-{{-- ── HEADER ────────────────────────────────────────────────────────── --}}
+@include('filament.pdf.partials.letterhead')
+
+{{-- ── TITLE BAND ───────────────────────────────────────────────────── --}}
 <div class="page-header">
   <h1>ENVIRONMENTAL AUDIT REPORT</h1>
   <div class="sub">

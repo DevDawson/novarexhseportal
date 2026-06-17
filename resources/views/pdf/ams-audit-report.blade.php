@@ -87,13 +87,15 @@
 </head>
 <body>
 
+@include('filament.pdf.partials.letterhead')
+
 {{-- ================================================================ --}}
-{{-- HEADER --}}
+{{-- TITLE BAND --}}
 {{-- ================================================================ --}}
 <div class="header">
   <div class="header-left">
     <h1>AUDIT MANAGEMENT SYSTEM — REPORT</h1>
-    <div class="sub">NOVAREX · ISO 9001 / ISO 14001 / ISO 45001 / ISO 50001 · Ref: ISO 19011:2018</div>
+    <div class="sub">ISO 9001 / ISO 14001 / ISO 45001 / ISO 50001 · Ref: ISO 19011:2018</div>
     <div class="sub" style="margin-top:4px;">{{ $audit->audit_title ?? 'Internal Audit Report' }}</div>
   </div>
   <div class="header-right">
