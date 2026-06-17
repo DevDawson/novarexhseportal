@@ -337,8 +337,9 @@ class ManagementReportService
                 'total_expenses' => $group->sum('amount'),
                 'staff_count' => $group->pluck('staff_id')->unique()->count(),
                 'expense_breakdown' => $group->groupBy('category')
-                    ->map(fn ($c) => $c->sum('amount'))
-                    ->toArray(),
+                    ->map(fn ($c) => number_format($c->sum('amount'), 2))
+                    ->map(fn ($v, $k) => "$k: $v")
+                    ->implode('; '),
             ])
             ->sortByDesc('total_expenses')
             ->values();
@@ -409,7 +410,17 @@ class ManagementReportService
     public static function toCsv(Collection|array $data, string $filename): \Symfony\Component\HttpFoundation\Response
     {
         $rows = collect($data)->map(function ($row) {
-            return array_map(fn ($value) => Utf8Sanitizer::clean($value), (array) $row);
+            return array_map(function ($value) {
+                $clean = Utf8Sanitizer::clean($value);
+                if (is_array($clean)) {
+                    $parts = [];
+                    foreach ($clean as $k => $v) {
+                        $parts[] = is_string($k) ? "$k: $v" : strval($v);
+                    }
+                    return implode('; ', $parts);
+                }
+                return $clean;
+            }, (array) $row);
         });
 
         return response()->streamDownload(function () use ($rows) {
