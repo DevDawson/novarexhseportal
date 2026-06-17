@@ -4,6 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InternalAuditResource\Pages;
 use App\Filament\Resources\InternalAuditResource\RelationManagers\FindingsRelationManager;
+use App\Filament\Resources\InternalAuditResource\RelationManagers\ChecklistItemsRelationManager;
+use App\Filament\Resources\InternalAuditResource\RelationManagers\NonConformitiesRelationManager;
+use App\Filament\Resources\InternalAuditResource\RelationManagers\AmsCapaActionsRelationManager;
 use App\Models\AuditFinding;
 use App\Models\Department;
 use App\Models\InternalAudit;
@@ -81,7 +84,7 @@ class InternalAuditResource extends Resource
                         ->native(false),
 
                     Forms\Components\Select::make('standard')
-                        ->label('Standard / Framework')
+                        ->label('Primary Standard / Framework')
                         ->options(InternalAudit::STANDARD_LABELS)
                         ->required()
                         ->native(false)
@@ -114,6 +117,17 @@ class InternalAuditResource extends Resource
                         ->searchable()
                         ->placeholder('Not department-specific')
                         ->nullable(),
+
+                    Forms\Components\TextInput::make('audit_location')
+                        ->label('Audit Location / Site')
+                        ->maxLength(255)
+                        ->placeholder('e.g. Head Office, Site B'),
+
+                    Forms\Components\Textarea::make('auditee_representative')
+                        ->label('Auditee Representative(s)')
+                        ->rows(2)
+                        ->helperText('Name(s) and title(s) of department owner / auditee contact')
+                        ->columnSpanFull(),
 
                     Forms\Components\DatePicker::make('audit_date')
                         ->label('Audit Date')
@@ -213,6 +227,25 @@ class InternalAuditResource extends Resource
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                         ->openable()
                         ->columnSpanFull(),
+                ]),
+
+            // --------------------------------------------------------
+            // SECTION 4b: Lead Auditor Approval
+            // --------------------------------------------------------
+            Forms\Components\Section::make('Lead Auditor Approval')
+                ->description('Lead auditor signs off on the completed audit report before closure.')
+                ->columns(2)
+                ->collapsed()
+                ->schema([
+                    Forms\Components\Select::make('approved_by_id')
+                        ->label('Approved By (Lead Auditor)')
+                        ->options(User::orderBy('name')->pluck('name', 'id'))
+                        ->searchable()
+                        ->nullable(),
+
+                    Forms\Components\DateTimePicker::make('approved_at')
+                        ->label('Approved At')
+                        ->native(false),
                 ]),
 
             // --------------------------------------------------------
@@ -335,6 +368,12 @@ class InternalAuditResource extends Resource
                     ->color('gray')
                     ->url(fn ($record) => route('pdf.audit', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('ams_pdf')
+                    ->label('AMS Report')
+                    ->icon('heroicon-o-clipboard-document-list')
+                    ->color('primary')
+                    ->url(fn ($record) => route('pdf.ams.audit', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -351,7 +390,10 @@ class InternalAuditResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ChecklistItemsRelationManager::class,
             FindingsRelationManager::class,
+            NonConformitiesRelationManager::class,
+            AmsCapaActionsRelationManager::class,
         ];
     }
 

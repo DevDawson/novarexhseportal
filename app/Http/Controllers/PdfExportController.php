@@ -9,6 +9,7 @@ use App\Models\GovernancePolicy;
 use App\Models\HazardRegister;
 use App\Models\HazopStudy;
 use App\Models\Incident;
+use App\Models\EnvironmentalAudit;
 use App\Models\PermitToWork;
 use App\Models\InternalAudit;
 use App\Models\SocialIndicator;
@@ -220,5 +221,52 @@ class PdfExportController extends Controller
         $pdf = Pdf::loadView('pdf.hazop-procedure')->setPaper('a4');
 
         return $pdf->download('NOVAREX-HAZOP-Procedure-PRO-HSE-HAZOP-001-' . now()->format('Ymd') . '.pdf');
+    }
+
+    // ----------------------------------------------------------------
+    // AMS Audit Report (ISO 9001 / 14001 / 45001 / 50001)
+    // ----------------------------------------------------------------
+
+    public function amsAuditReport(InternalAudit $audit): Response
+    {
+        abort_unless(auth()->user()?->can('manage audits'), 403);
+
+        $audit->load([
+            'project', 'department', 'leadAuditor', 'approvedBy',
+            'teamMembers',
+            'checklistItems',
+            'nonConformities.assignedTo',
+            'amsCapaActions.responsiblePerson',
+            'amsCapaActions.nc',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.ams-audit-report', compact('audit'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            $audit->audit_reference . '-AMS-Report-' . now()->format('Ymd') . '.pdf'
+        );
+    }
+
+    // ----------------------------------------------------------------
+    // Environmental Audit Report (ISO 14001)
+    // ----------------------------------------------------------------
+
+    public function environmentalAudit(EnvironmentalAudit $audit): Response
+    {
+        abort_unless(auth()->user()?->can('manage esia_audits'), 403);
+
+        $audit->load([
+            'project', 'department', 'teamLeader', 'leadAuditor', 'approvedBy',
+            'checklistItems',
+            'findings.closedBy',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.environmental-audit', compact('audit'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            $audit->audit_number . '-Environmental-Audit-Report-' . now()->format('Ymd') . '.pdf'
+        );
     }
 }

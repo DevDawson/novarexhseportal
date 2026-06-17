@@ -18,7 +18,7 @@ class EsiaReportResource extends Resource
     protected static ?string $navigationGroup = 'EIA / ESIA';
     protected static ?string $navigationLabel = 'Step 10: ESIA Reports';
     protected static ?string $modelLabel = 'ESIA Report';
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 10;
 
     public static function canViewAny(): bool { return auth()->user()?->can('manage esia_audits') ?? false; }
     public static function canCreate(): bool  { return auth()->user()?->can('manage esia_audits') ?? false; }

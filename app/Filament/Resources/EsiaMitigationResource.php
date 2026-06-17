@@ -18,7 +18,7 @@ class EsiaMitigationResource extends Resource
     protected static ?string $navigationGroup = 'EIA / ESIA';
     protected static ?string $navigationLabel = 'Step 8: Mitigation (ESMP)';
     protected static ?string $modelLabel = 'Mitigation Action';
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 8;
 
     public static function canViewAny(): bool { return auth()->user()?->can('manage esia_audits') ?? false; }
     public static function canCreate(): bool  { return auth()->user()?->can('manage esia_audits') ?? false; }

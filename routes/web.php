@@ -40,4 +40,10 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
 
     Route::get('/ptw/permit/{permit}',     [PdfExportController::class, 'ptwPermit'])
         ->name('ptw.permit');
+
+    Route::get('/env/audit/{audit}',       [PdfExportController::class, 'environmentalAudit'])
+        ->name('env.audit');
+
+    Route::get('/ams/audit/{audit}',       [PdfExportController::class, 'amsAuditReport'])
+        ->name('ams.audit');
 });

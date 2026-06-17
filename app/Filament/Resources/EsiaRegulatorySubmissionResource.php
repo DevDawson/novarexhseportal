@@ -18,7 +18,7 @@ class EsiaRegulatorySubmissionResource extends Resource
     protected static ?string $navigationGroup = 'EIA / ESIA';
     protected static ?string $navigationLabel = 'Step 11: Regulatory Submissions';
     protected static ?string $modelLabel = 'Regulatory Submission';
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 11;
 
     public static function canViewAny(): bool { return auth()->user()?->can('manage esia_audits') ?? false; }
     public static function canCreate(): bool  { return auth()->user()?->can('manage esia_audits') ?? false; }

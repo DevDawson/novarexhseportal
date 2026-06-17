@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\EmsKpiOverview;
+use App\Filament\Widgets\AuditManagementKpiWidget;
+use App\Filament\Widgets\EnvironmentalAuditKpiWidget;
 use App\Filament\Widgets\EsiaOverviewWidget;
 use App\Filament\Widgets\EnvironmentalMetricsTrendChart;
 use App\Filament\Widgets\EsgKpiOverview;
@@ -134,6 +136,12 @@ class AdminPanelProvider extends PanelProvider
 
                 // 16. EIA/ESIA overview KPIs (MD, HSE Staff, Business Director)
                 EsiaOverviewWidget::class,
+
+                // 17. AMS KPIs — ISO 9001/14001/45001/50001 (MD, HSE Staff, Business Director)
+                AuditManagementKpiWidget::class,
+
+                // 18. Environmental Audit KPIs — ISO 14001 (MD, HSE Staff, Business Director)
+                EnvironmentalAuditKpiWidget::class,
             ])
 
             ->middleware([

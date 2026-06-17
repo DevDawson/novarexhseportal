@@ -7,27 +7,33 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 class InternalAudit extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'audit_reference', 'audit_type', 'standard', 'standard_other', 'scope',
         'audit_objectives', 'audit_criteria',
         'project_id', 'department_id',
+        'audit_location', 'auditee_representative',
         'audit_date', 'planned_start_date', 'planned_end_date',
         'lead_auditor_id', 'status',
         'opening_meeting_notes', 'closing_meeting_notes', 'summary', 'report_file',
         'closure_verification_notes', 'closure_verified_by_id', 'closure_date',
+        'approved_by_id', 'approved_at',
+        'total_findings', 'open_ncs', 'compliance_score',
     ];
 
     protected $casts = [
-        'audit_date' => 'date',
+        'audit_date'         => 'date',
         'planned_start_date' => 'date',
-        'planned_end_date' => 'date',
-        'closure_date' => 'date',
+        'planned_end_date'   => 'date',
+        'closure_date'       => 'date',
+        'approved_at'        => 'datetime',
+        'compliance_score'   => 'float',
     ];
 
     public const AUDIT_TYPE_LABELS = [
@@ -42,6 +48,7 @@ class InternalAudit extends Model
         'iso9001'         => 'ISO 9001 — Quality Management',
         'iso14001'        => 'ISO 14001 — Environmental Management',
         'iso45001'        => 'ISO 45001 — OH&S Management',
+        'iso50001'        => 'ISO 50001 — Energy Management',
         'client_specific' => 'Client-Specific Requirements',
         'other'           => 'Other',
     ];
@@ -95,6 +102,26 @@ class InternalAudit extends Model
     public function lessonsLearned(): HasMany
     {
         return $this->hasMany(LessonsLearned::class, 'audit_id');
+    }
+
+    public function checklistItems(): HasMany
+    {
+        return $this->hasMany(AuditChecklistItem::class, 'internal_audit_id')->orderBy('sort_order');
+    }
+
+    public function nonConformities(): HasMany
+    {
+        return $this->hasMany(AuditNonConformity::class, 'internal_audit_id');
+    }
+
+    public function amsCapaActions(): HasMany
+    {
+        return $this->hasMany(AuditCapaAction::class, 'internal_audit_id');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by_id');
     }
 
     // ----------------------------------------------------------------
