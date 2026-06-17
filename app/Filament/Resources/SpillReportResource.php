@@ -52,7 +52,7 @@ class SpillReportResource extends Resource
                         ->placeholder('Auto-generated'),
 
                     Forms\Components\Select::make('project_id')
-                        ->relationship('project', 'name')
+                        ->relationship('project', 'title')
                         ->searchable()
                         ->native(false),
 

@@ -96,7 +96,7 @@ class CapaResource extends Resource
                         ->visible(fn ($get) => $get('source_type') === 'audit'),
 
                     Forms\Components\Select::make('project_id')
-                        ->relationship('project', 'name')
+                        ->relationship('project', 'title')
                         ->searchable()
                         ->native(false),
                 ]),

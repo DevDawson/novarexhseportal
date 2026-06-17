@@ -76,7 +76,7 @@ class LessonsLearnedResource extends Resource
                         ->live(),
 
                     Forms\Components\Select::make('project_id')
-                        ->relationship('project', 'name')
+                        ->relationship('project', 'title')
                         ->searchable()
                         ->native(false)
                         ->visible(fn ($get) => $get('applicable_to') === 'specific_project'),

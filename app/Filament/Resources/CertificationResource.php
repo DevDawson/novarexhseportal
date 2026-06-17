@@ -47,7 +47,8 @@ class CertificationResource extends Resource
                 ->schema([
                     Forms\Components\Select::make('staff_id')
                         ->label('Staff Member')
-                        ->relationship('staff', 'full_name')
+                        ->relationship('staff', 'first_name')
+                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->first_name . ' ' . $record->last_name)
                         ->searchable()
                         ->preload()
                         ->required()

@@ -16,16 +16,23 @@ class EsiaScreening extends Model
     protected $fillable = [
         'project_id', 'scale', 'sensitivity', 'pollution_potential',
         'screening_score', 'category', 'project_description',
-        'screening_justification', 'screened_by', 'screened_at',
+        'screening_justification',
+        'land_acquisition_involved', 'biodiversity_risk_checked',
+        'sensitive_area_check', 'pollution_check_done',
+        'screened_by', 'screened_at',
         'status', 'reviewer_notes',
     ];
 
     protected $casts = [
-        'screened_at' => 'date',
-        'scale' => 'integer',
-        'sensitivity' => 'integer',
-        'pollution_potential' => 'integer',
-        'screening_score' => 'integer',
+        'screened_at'                => 'date',
+        'scale'                      => 'integer',
+        'sensitivity'                => 'integer',
+        'pollution_potential'        => 'integer',
+        'screening_score'            => 'integer',
+        'land_acquisition_involved'  => 'boolean',
+        'biodiversity_risk_checked'  => 'boolean',
+        'sensitive_area_check'       => 'boolean',
+        'pollution_check_done'       => 'boolean',
     ];
 
     // ----------------------------------------------------------------

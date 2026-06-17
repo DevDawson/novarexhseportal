@@ -67,7 +67,7 @@ class EnvironmentalPermitResource extends Resource
                         ->native(false),
 
                     Forms\Components\Select::make('project_id')
-                        ->relationship('project', 'name')
+                        ->relationship('project', 'title')
                         ->searchable()
                         ->native(false),
 

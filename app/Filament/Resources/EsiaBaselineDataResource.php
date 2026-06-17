@@ -41,12 +41,28 @@ class EsiaBaselineDataResource extends Resource
                     Forms\Components\Select::make('parameter_type')
                         ->label('Parameter Type')
                         ->options(EsiaBaselineData::PARAMETER_TYPE_LABELS)
-                        ->required()->native(false),
+                        ->required()
+                        ->native(false)
+                        ->live()
+                        ->afterStateUpdated(fn (Forms\Set $set) => $set('parameter_subtype', null)),
+
+                    Forms\Components\Select::make('parameter_subtype')
+                        ->label('Parameter (Preset)')
+                        ->options(fn (Forms\Get $get): array =>
+                            EsiaBaselineData::PARAMETER_SUBTYPES[$get('parameter_type')] ?? []
+                        )
+                        ->searchable()
+                        ->live()
+                        ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => $set('parameter_name', $get('parameter_subtype') ?? $get('parameter_name')))
+                        ->placeholder('Select from preset list…')
+                        ->helperText('Choose from presets or leave blank and enter manually below'),
 
                     Forms\Components\TextInput::make('parameter_name')
-                        ->label('Parameter Name')
-                        ->placeholder('e.g. PM10, pH, Noise dB(A)')
-                        ->required()->maxLength(255),
+                        ->label('Parameter Name (Custom / Override)')
+                        ->placeholder('e.g. PM10, pH, Noise Leq dB(A)')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
                 ]),
 
             Forms\Components\Section::make('Measurement')
@@ -54,8 +70,12 @@ class EsiaBaselineDataResource extends Resource
                 ->schema([
                     Forms\Components\TextInput::make('sampling_location')
                         ->label('Sampling Location')
-                        ->maxLength(255)
-                        ->columnSpan(2),
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('gps_coordinates')
+                        ->label('GPS Coordinates')
+                        ->placeholder('e.g. -6.1523, 35.7395')
+                        ->maxLength(100),
 
                     Forms\Components\DatePicker::make('measurement_date')
                         ->label('Measurement Date')
@@ -71,13 +91,29 @@ class EsiaBaselineDataResource extends Resource
                         ->maxLength(50),
 
                     Forms\Components\TextInput::make('standard_limit')
-                        ->label('Regulatory Standard / Limit')
-                        ->placeholder('e.g. TBS/NEMC max 150 µg/m³')
+                        ->label('Regulatory Limit')
+                        ->placeholder('e.g. 150 µg/m³')
+                        ->maxLength(100),
+
+                    Forms\Components\TextInput::make('standard_reference')
+                        ->label('Standard Reference')
+                        ->placeholder('e.g. TBS TZS 845, WHO 2021, NEMC 2007')
                         ->maxLength(100),
 
                     Forms\Components\Toggle::make('exceeds_limit')
                         ->label('Exceeds Regulatory Limit')
                         ->default(false),
+
+                    Forms\Components\Select::make('trend')
+                        ->label('Trend vs. Previous')
+                        ->options([
+                            'improving'  => 'Improving',
+                            'stable'     => 'Stable',
+                            'worsening'  => 'Worsening',
+                            'unknown'    => 'Unknown / First Measurement',
+                        ])
+                        ->default('unknown')
+                        ->native(false),
                 ]),
 
             Forms\Components\Section::make('Source & Notes')
@@ -85,13 +121,14 @@ class EsiaBaselineDataResource extends Resource
                 ->schema([
                     Forms\Components\TextInput::make('data_source')
                         ->label('Data Source')
-                        ->placeholder('e.g. Field measurement, published report')
+                        ->placeholder('e.g. Field measurement, NEMC report, IoT sensor')
                         ->maxLength(255),
 
                     Forms\Components\Select::make('recorded_by')
                         ->label('Recorded By')
-                        ->options(User::orderBy('name')->pluck('name', 'id'))
-                        ->searchable(),
+                        ->relationship('recordedBy', 'name')
+                        ->searchable()
+                        ->preload(),
 
                     Forms\Components\Textarea::make('notes')
                         ->rows(3)

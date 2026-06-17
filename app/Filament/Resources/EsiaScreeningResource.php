@@ -111,6 +111,27 @@ class EsiaScreeningResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Forms\Components\Section::make('Screening Checklist')
+                ->description('Confirm each checklist item has been assessed during the screening process.')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\Toggle::make('land_acquisition_involved')
+                        ->label('Land Acquisition Involved?')
+                        ->helperText('Project requires acquisition of land from current occupants.'),
+
+                    Forms\Components\Toggle::make('biodiversity_risk_checked')
+                        ->label('Biodiversity Risk Assessed?')
+                        ->helperText('Potential impacts on flora, fauna, and ecosystems have been reviewed.'),
+
+                    Forms\Components\Toggle::make('sensitive_area_check')
+                        ->label('Sensitive Area Check Done?')
+                        ->helperText('Proximity to protected areas, water bodies, or cultural sites assessed.'),
+
+                    Forms\Components\Toggle::make('pollution_check_done')
+                        ->label('Pollution Potential Assessed?')
+                        ->helperText('Potential for air, water, soil, or noise pollution formally assessed.'),
+                ]),
+
             Forms\Components\Section::make('Review & Status')
                 ->columns(2)
                 ->schema([

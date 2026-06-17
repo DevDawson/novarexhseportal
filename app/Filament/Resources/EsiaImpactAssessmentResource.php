@@ -63,13 +63,28 @@ class EsiaImpactAssessmentResource extends Resource
                         ->options(['positive' => 'Positive', 'negative' => 'Negative', 'neutral' => 'Neutral'])
                         ->default('negative')->required()->native(false),
 
+                    Forms\Components\Toggle::make('is_direct')
+                        ->label('Direct Impact')
+                        ->default(true)
+                        ->helperText('Caused directly by the project activity.'),
+
+                    Forms\Components\Toggle::make('is_cumulative')
+                        ->label('Cumulative Impact')
+                        ->default(false)
+                        ->helperText('Adds to impacts from other sources.'),
+
+                    Forms\Components\Toggle::make('is_reversible')
+                        ->label('Reversible')
+                        ->default(true)
+                        ->helperText('Environment can recover after impact.'),
+
                     Forms\Components\Textarea::make('impact_description')
                         ->label('Impact Description')
                         ->rows(3)->required()->columnSpanFull(),
                 ]),
 
             Forms\Components\Section::make('Significance Rating (Severity × Likelihood × Duration × Sensitivity)')
-                ->description('Each factor rated 1–5. Max score = 625. Critical ≥300, Major ≥100, Moderate ≥40, Minor ≥10, Negligible <10.')
+                ->description('Each factor rated 1–5. Max score = 625. Impact Level: High ≥81 (Red), Medium 21–80 (Yellow), Low 1–20 (Green). Detailed: Critical ≥300, Major ≥100, Moderate ≥40, Minor ≥10, Negligible <10.')
                 ->columns(4)
                 ->schema([
                     Forms\Components\Select::make('severity')
@@ -117,19 +132,21 @@ class EsiaImpactAssessmentResource extends Resource
                         ),
 
                     Forms\Components\Placeholder::make('significance_preview')
-                        ->label('Significance Score')
+                        ->label('Impact Score & Classification')
                         ->content(function (Forms\Get $get): string {
-                            $s = (int)$get('severity') ?: 1;
-                            $l = (int)$get('likelihood') ?: 1;
-                            $d = (int)$get('duration') ?: 1;
+                            $s   = (int)$get('severity')    ?: 1;
+                            $l   = (int)$get('likelihood')  ?: 1;
+                            $d   = (int)$get('duration')    ?: 1;
                             $sen = (int)$get('sensitivity') ?: 1;
                             $score = $s * $l * $d * $sen;
-                            $level = EsiaImpactAssessment::scoreToLevel($score);
-                            return "{$score} / 625 — " . ucfirst($level);
+                            $detail = ucfirst(EsiaImpactAssessment::scoreToLevel($score));
+                            $level  = strtoupper(EsiaImpactAssessment::scoreToImpactLevel($score));
+                            return "Score: {$score} / 625 — {$level} IMPACT ({$detail})";
                         })
                         ->columnSpanFull(),
 
                     Forms\Components\Hidden::make('significance_score')->default(1),
+                    Forms\Components\Hidden::make('impact_level')->default('low'),
                 ]),
 
             Forms\Components\Section::make('Proposed Mitigation & Residual Risk')
@@ -179,6 +196,7 @@ class EsiaImpactAssessmentResource extends Resource
             * ((int)$g('duration') ?: 1)
             * ((int)$g('sensitivity') ?: 1);
         $s('significance_score', $score);
+        $s('impact_level', EsiaImpactAssessment::scoreToImpactLevel($score));
     }
 
     public static function table(Table $table): Table
@@ -201,27 +219,35 @@ class EsiaImpactAssessmentResource extends Resource
                         'gray'    => 'neutral',
                     ]),
 
+                Tables\Columns\TextColumn::make('impact_level')
+                    ->label('Impact Level')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match($state) {
+                        'high'   => 'HIGH',
+                        'medium' => 'MEDIUM',
+                        'low'    => 'LOW',
+                        default  => '—',
+                    })
+                    ->color(fn (?string $state): string => EsiaImpactAssessment::IMPACT_LEVEL_COLORS[$state] ?? 'gray')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('significance_score')
                     ->label('Score')
                     ->badge()
                     ->formatStateUsing(fn ($s) => $s . ' / 625')
-                    ->color(fn ($state, $record) =>
-                        EsiaImpactAssessment::levelColor($record->significance_level)
+                    ->color(fn (int $state): string =>
+                        EsiaImpactAssessment::levelColor(EsiaImpactAssessment::scoreToLevel($state))
                     )
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('significance_level')
-                    ->label('Significance')
+                Tables\Columns\TextColumn::make('significance_level')
+                    ->label('Detail')
+                    ->badge()
                     ->formatStateUsing(fn ($s) => ucfirst($s))
-                    ->colors([
-                        'danger'  => 'critical',
-                        'warning' => 'major',
-                        'primary' => 'moderate',
-                        'info'    => 'minor',
-                        'success' => 'negligible',
-                    ]),
+                    ->color(fn (string $state): string => EsiaImpactAssessment::levelColor($state)),
 
-                Tables\Columns\BadgeColumn::make('phase')
+                Tables\Columns\TextColumn::make('phase')
+                    ->badge()
                     ->formatStateUsing(fn ($s) => EsiaImpactAssessment::PHASE_LABELS[$s] ?? $s)
                     ->color('gray'),
             ])

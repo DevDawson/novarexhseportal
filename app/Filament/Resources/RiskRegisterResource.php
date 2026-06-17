@@ -50,7 +50,7 @@ class RiskRegisterResource extends Resource
                 ->columns(2)
                 ->schema([
                     Forms\Components\Select::make('project_id')
-                        ->relationship('project', 'name')
+                        ->relationship('project', 'title')
                         ->label('Project')
                         ->searchable()
                         ->preload()

@@ -74,7 +74,7 @@ class EnergyConsumptionResource extends Resource
                         ->afterOrEqual('period_start'),
 
                     Forms\Components\Select::make('project_id')
-                        ->relationship('project', 'name')
+                        ->relationship('project', 'title')
                         ->searchable()
                         ->native(false),
                 ]),

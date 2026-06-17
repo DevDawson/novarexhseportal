@@ -16,10 +16,12 @@ class EsiaImpactAssessment extends Model
     protected $fillable = [
         'project_id', 'activity', 'receptor', 'impact_category',
         'impact_description', 'phase', 'nature',
+        'is_direct', 'is_cumulative', 'is_reversible',
         'severity', 'likelihood', 'duration', 'sensitivity', 'significance_score', 'significance_level',
+        'impact_level',
         'proposed_mitigation',
         'residual_severity', 'residual_likelihood', 'residual_duration', 'residual_sensitivity',
-        'residual_significance_score', 'residual_significance_level',
+        'residual_significance_score', 'residual_significance_level', 'residual_impact_level',
         'assessed_by',
     ];
 
@@ -34,6 +36,9 @@ class EsiaImpactAssessment extends Model
         'residual_duration'    => 'integer',
         'residual_sensitivity' => 'integer',
         'residual_significance_score' => 'integer',
+        'is_direct'      => 'boolean',
+        'is_cumulative'  => 'boolean',
+        'is_reversible'  => 'boolean',
     ];
 
     // ----------------------------------------------------------------
@@ -71,6 +76,19 @@ class EsiaImpactAssessment extends Model
         'critical'   => 'Critical',
     ];
 
+    // 3-level system from spec: 1-20 = Low, 21-80 = Medium, 81+ = High
+    public const IMPACT_LEVEL_LABELS = [
+        'low'    => 'Low Impact',
+        'medium' => 'Medium Impact',
+        'high'   => 'High Impact',
+    ];
+
+    public const IMPACT_LEVEL_COLORS = [
+        'low'    => 'success',
+        'medium' => 'warning',
+        'high'   => 'danger',
+    ];
+
     public const RATING_OPTIONS = [
         1 => '1 — Very Low',
         2 => '2 — Low',
@@ -86,12 +104,13 @@ class EsiaImpactAssessment extends Model
     protected static function booted(): void
     {
         static::saving(function (self $model) {
-            // Initial significance: S × L × D × Sensitivity
+            // Initial significance: S × L × D × Sensitivity (max 625)
             $model->significance_score = $model->severity
                 * $model->likelihood
                 * $model->duration
                 * $model->sensitivity;
             $model->significance_level = self::scoreToLevel($model->significance_score);
+            $model->impact_level       = self::scoreToImpactLevel($model->significance_score);
 
             // Residual (only if all 4 residual factors filled)
             if ($model->residual_severity && $model->residual_likelihood
@@ -101,6 +120,7 @@ class EsiaImpactAssessment extends Model
                     * $model->residual_duration
                     * $model->residual_sensitivity;
                 $model->residual_significance_level = self::scoreToLevel($model->residual_significance_score);
+                $model->residual_impact_level       = self::scoreToImpactLevel($model->residual_significance_score);
             }
         });
     }
@@ -112,6 +132,14 @@ class EsiaImpactAssessment extends Model
         if ($score >= 40)  return 'moderate';
         if ($score >= 10)  return 'minor';
         return 'negligible';
+    }
+
+    // Spec 3-level system: 1-20 = low, 21-80 = medium, 81+ = high
+    public static function scoreToImpactLevel(int $score): string
+    {
+        if ($score >= 81) return 'high';
+        if ($score >= 21) return 'medium';
+        return 'low';
     }
 
     public static function levelColor(string $level): string
