@@ -3,14 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
+use App\Mail\InvoiceMail;
 use App\Models\Invoice;
+use App\Models\Setting;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Mail;
 
 class InvoiceResource extends Resource
 {
@@ -284,6 +288,59 @@ class InvoiceResource extends Resource
                         'status' => 'paid',
                         'amount_paid' => $record->total_amount,
                     ])),
+
+                Tables\Actions\Action::make('pdf')
+                    ->label('PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->url(fn (Invoice $record) => route('pdf.invoice', $record))
+                    ->openUrlInNewTab(),
+
+                Tables\Actions\Action::make('sendEmail')
+                    ->label('Email')
+                    ->icon('heroicon-o-envelope')
+                    ->color('info')
+                    ->form([
+                        Forms\Components\TextInput::make('to_email')
+                            ->label('Recipient Email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('subject')
+                            ->label('Subject')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('body')
+                            ->label('Message')
+                            ->required()
+                            ->rows(5),
+                    ])
+                    ->fillForm(fn (Invoice $record) => [
+                        'to_email' => $record->client->email ?? '',
+                        'subject'  => 'Invoice ' . $record->invoice_number . ' — ' . Setting::companyName(),
+                        'body'     => "Dear " . ($record->client->contact_person ?: $record->client->company_name) . ",\n\nPlease find attached invoice " . $record->invoice_number . " for TZS " . number_format((float)$record->total_amount, 2) . ".\n\nPayment is due by " . ($record->due_date ? $record->due_date->format('d M Y') : 'the agreed date') . ".\n\nPlease quote the invoice number with your payment.\n\nKind regards,\n" . Setting::companyName(),
+                    ])
+                    ->action(function (Invoice $record, array $data): void {
+                        Mail::to($data['to_email'])->send(new InvoiceMail($record, $data['body']));
+                        Notification::make()
+                            ->title('Invoice emailed to ' . $data['to_email'])
+                            ->success()
+                            ->send();
+                    })
+                    ->modalHeading('Send Invoice by Email')
+                    ->modalSubmitActionLabel('Send Email'),
+
+                Tables\Actions\Action::make('whatsapp')
+                    ->label('WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->url(function (Invoice $record): string {
+                        $phone = preg_replace('/[^\d]/', '', $record->client->phone ?? '');
+                        $message = "Hello " . ($record->client->contact_person ?: $record->client->company_name) . ",\n\nPlease find your invoice details below:\n\nInvoice No: " . $record->invoice_number . "\nDate: " . $record->invoice_date->format('d M Y') . "\nTotal: TZS " . number_format((float)$record->total_amount, 2) . "\nBalance Due: TZS " . number_format($record->balance, 2) . "\nDue Date: " . ($record->due_date ? $record->due_date->format('d M Y') : 'As agreed') . "\n\nKindly quote the invoice number with your payment.\n\nThank you,\n" . Setting::companyName();
+                        return 'https://wa.me/' . $phone . '?text=' . rawurlencode($message);
+                    })
+                    ->openUrlInNewTab()
+                    ->visible(fn (Invoice $record) => !empty($record->client->phone)),
 
                 Tables\Actions\EditAction::make(),
             ])

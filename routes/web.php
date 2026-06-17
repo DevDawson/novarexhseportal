@@ -50,4 +50,7 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
 
     Route::get('/ams/audit/{audit}',       [PdfExportController::class, 'amsAuditReport'])
         ->name('ams.audit');
+
+    Route::get('/invoice/{invoice}',       [PdfExportController::class, 'invoicePdf'])
+        ->name('invoice');
 });

@@ -10,8 +10,10 @@ use App\Models\HazardRegister;
 use App\Models\HazopStudy;
 use App\Models\Incident;
 use App\Models\EnvironmentalAudit;
+use App\Models\Invoice;
 use App\Models\PermitToWork;
 use App\Models\InternalAudit;
+use App\Models\Setting;
 use App\Models\SocialIndicator;
 use App\Services\HazopScoringService;
 use App\Services\RiskScoringService;
@@ -269,6 +271,33 @@ class PdfExportController extends Controller
         return $pdf->download(
             $audit->audit_number . '-Environmental-Audit-Report-' . now()->format('Ymd') . '.pdf'
         );
+    }
+
+    // ----------------------------------------------------------------
+    // Invoice PDF
+    // ----------------------------------------------------------------
+
+    public function invoicePdf(Invoice $invoice): Response
+    {
+        abort_unless(auth()->user()?->can('manage invoices'), 403);
+
+        $invoice->load('client', 'project', 'items', 'createdBy');
+
+        $company = [
+            'name'    => Setting::companyName(),
+            'tagline' => Setting::companyTagline(),
+            'address' => Setting::companyAddress(),
+            'tin'     => Setting::companyTin(),
+            'phone'   => Setting::companyPhone(),
+            'email'   => Setting::companyEmail(),
+        ];
+
+        $bank = Setting::bankDetails();
+
+        $pdf = Pdf::loadView('pdf.invoice', compact('invoice', 'company', 'bank'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download("{$invoice->invoice_number}-" . now()->format('Ymd') . '.pdf');
     }
 
     // ----------------------------------------------------------------
