@@ -23,6 +23,7 @@ use App\Models\EsiaRegulatorySubmission;
 use App\Models\EsiaScreening;
 use App\Models\EsiaScopingIssue;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 
 class PdfExportController extends Controller
@@ -268,5 +269,13 @@ class PdfExportController extends Controller
         return $pdf->download(
             $audit->audit_number . '-Environmental-Audit-Report-' . now()->format('Ymd') . '.pdf'
         );
+    }
+
+    // ----------------------------------------------------------------
+    // Training Manual
+    // ----------------------------------------------------------------
+    public function trainingManual(): View
+    {
+        return view('training.manual');
     }
 }

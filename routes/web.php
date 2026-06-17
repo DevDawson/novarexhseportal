@@ -12,6 +12,10 @@ Route::get('/', function () {
 // All are auth-gated; each controller method further checks the
 // specific permission required.
 // ----------------------------------------------------------------
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/training/manual', [PdfExportController::class, 'trainingManual'])->name('training.manual');
+});
+
 Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(function () {
 
     Route::get('/hira/{hazard}',           [PdfExportController::class, 'hira'])

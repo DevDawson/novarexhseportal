@@ -329,7 +329,7 @@
         </div>
         <div class="border-t border-linedark">
             <div class="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-paper/40">
-                <span>NovarexHSE &middot; Built by Webmaster Crew</span>
+                <span>NovarexHSE &middot; Built by Deeteki</span>
                 <span>&copy; {{ date('Y') }} &mdash; Mwanza, Tanzania</span>
             </div>
         </div>
