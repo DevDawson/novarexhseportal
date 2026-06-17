@@ -111,8 +111,8 @@
   <div class="cover-title">System Training Manual</div>
   <div class="cover-sub">Complete step-by-step guide for all roles — covering every module, workflow, and feature of the PortalHSE platform.</div>
   <div class="cover-meta">
-    <span>Version 2.0 — June 2026</span>
-    <span>11 Modules · All Roles Covered</span>
+    <span>Version 2.1 — June 2026</span>
+    <span>11 HSE + Supporting Modules · All Roles Covered</span>
     <span>Confidential — Internal Use Only</span>
   </div>
 </div>
@@ -142,6 +142,7 @@
     <div class="toc-item"><a href="#m12">Module 12 — Training &amp; Competency</a><span class="pg">§15</span></div>
     <div class="toc-item"><a href="#m13">Module 13 — HR &amp; Payroll</a><span class="pg">§16</span></div>
     <div class="toc-item"><a href="#m14">Module 14 — Finance &amp; Expenses</a><span class="pg">§17</span></div>
+    <div class="toc-item"><a href="#m14-consultant">&nbsp;&nbsp;&nbsp;↳ 14.6 Consultant Payment Requests</a><span class="pg">§17</span></div>
     <div class="toc-item"><a href="#m15">Module 15 — Document Control</a><span class="pg">§18</span></div>
     <div class="toc-item"><a href="#m16">Module 16 — Energy Management (EnMS)</a><span class="pg">§19</span></div>
     <div class="toc-item"><a href="#admin">System Administration</a><span class="pg">§20</span></div>
@@ -1017,12 +1018,23 @@
     <span class="role role-all">Field Staff (Expenses)</span>
   </div>
 
-  <h3>14.1 Invoices</h3>
-  <ul>
-    <li>Go to <strong>Finance &amp; Expenses → Invoices</strong> to manage client invoices</li>
-    <li>Link invoices to a <strong>Project</strong> and <strong>Client</strong>. Enter line items, tax, and payment terms</li>
-    <li>Track invoice status: Draft → Sent → Paid → Overdue</li>
-  </ul>
+  <h3>14.1 Invoices (Client Invoicing)</h3>
+  <p>Use this to bill clients for services rendered on a project.</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body">Go to <strong>Finance &amp; Expenses → Invoices → New Invoice</strong>. Select the <strong>Client</strong> and optionally link a <strong>Project</strong>. The <strong>Invoice Number</strong> is auto-generated.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">Add line items in the <strong>Line Items</strong> section — enter <strong>Description</strong>, <strong>Quantity</strong>, and <strong>Unit Price</strong>. The system auto-calculates <strong>Subtotal</strong>, <strong>VAT (18%)</strong>, and <strong>Total</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Set <strong>Invoice Date</strong>, <strong>Due Date</strong>, and initial <strong>Status</strong> (Draft → Sent → Partially Paid → Paid → Overdue).</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">Add <strong>Notes / Payment Terms</strong> if needed. Save.</div></div>
+  </div>
+  <h4>Invoice Row Actions</h4>
+  <table>
+    <tr><th>Action</th><th>What it does</th></tr>
+    <tr><td><strong>Mark Paid</strong></td><td>Sets status to Paid and fills amount paid = total (one-click settlement)</td></tr>
+    <tr><td><strong>PDF</strong></td><td>Downloads a professionally formatted PDF invoice including your company address, TIN, bank details, client TIN, line items, totals, and payment instructions</td></tr>
+    <tr><td><strong>Email</strong></td><td>Opens a modal pre-filled with the client's email, subject, and a default message body. Clicking Send emails the invoice with the PDF attached automatically</td></tr>
+    <tr><td><strong>WhatsApp</strong></td><td>Opens WhatsApp (web or app) with a pre-filled invoice summary message sent to the client's phone number. Only visible if the client has a phone number on record</td></tr>
+  </table>
+  <div class="info">The PDF invoice pulls your <strong>Company Address, TIN, Phone, Email,</strong> and <strong>Bank Details</strong> from <strong>Settings → Company Settings</strong>. Fill these in before generating invoices to ensure the PDF is complete.</div>
 
   <h3>14.2 Field Expenses</h3>
   <div class="steps">
@@ -1054,6 +1066,118 @@
 
   <h3>14.5 Monthly Financial Summary</h3>
   <p>Go to <strong>Finance &amp; Expenses → Monthly Financial Summary</strong>. Select a month and click <strong>Export PDF</strong> to download a consolidated one-page financial report showing Revenue, Total Outflows, Net Position, Payroll, Field Expenses, Petty Cash, and a reconciliation table.</p>
+
+  <div class="divider"></div>
+
+  <h3 id="m14-consultant">14.6 Consultant Payment Requests</h3>
+  <div class="roles">
+    <span class="role role-acc">Accountant</span>
+    <span class="role role-md">MD</span>
+  </div>
+  <p>Before any consultant or sub-consultant can be paid during project implementation, they must go through a four-stage compliance process. The system enforces this sequence — each step only becomes available after the previous one is completed.</p>
+
+  <div class="workflow">
+    <div class="wf-box gray">Pending</div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-box orange">Proforma Received</div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-box">Proforma Verified</div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-box orange">Awaiting EFD/VFD</div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-box">EFD/VFD Received</div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-box green">Paid</div>
+    <div class="wf-arrow">|</div>
+    <div class="wf-box red">Rejected</div>
+  </div>
+
+  <h4>Stage 1 — Create the Payment Request &amp; Enter Proforma Invoice</h4>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body">Go to <strong>Finance &amp; Expenses → Consultant Payments → New Consultant Payment Request</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">Select the <strong>Project</strong> this consultant is working on.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Choose <strong>Consultant Type</strong>:
+      <ul>
+        <li><strong>External / Sub-consultant</strong> — type the company or person name directly</li>
+        <li><strong>Internal Staff / Consultant</strong> — select from the existing staff list</li>
+      </ul>
+    </div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">Fill in the <strong>Proforma Invoice</strong> section using the details from the consultant's proforma:
+      <ul>
+        <li><strong>Proforma Invoice Number</strong> — as printed on their document</li>
+        <li><strong>Proforma Date</strong></li>
+        <li><strong>Description of Services</strong></li>
+        <li><strong>Net Amount</strong> — VAT (18%) and Total are calculated automatically</li>
+        <li>Upload the <strong>scanned Proforma Invoice</strong> (PDF or image)</li>
+      </ul>
+    </div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body">Open the <strong>Consultant Registration &amp; Contact</strong> section and enter:
+      <ul>
+        <li><strong>TIN Number</strong> — required for tax compliance</li>
+        <li><strong>VRN (VAT Registration Number)</strong> — if the consultant is VAT-registered</li>
+        <li><strong>BRELA / Business Registration Number</strong></li>
+        <li>Physical Address, Phone, Email</li>
+      </ul>
+    </div></div>
+    <div class="step"><div class="step-num">6</div><div class="step-body">Open the <strong>Consultant Bank Details</strong> section and enter the bank details as shown on the proforma (Bank Name, Branch, Account Name, Account Number, SWIFT). Save.</div></div>
+  </div>
+
+  <div class="info"><strong>Required information on the Proforma Invoice:</strong> Consultant name, TIN, VRN (if applicable), physical address, service description, net amount, VAT (18%), total amount, bank details, and date. The system will not let you proceed to payment without these fields.</div>
+
+  <h4>Stage 2 — Mark Proforma Received &amp; Verify</h4>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body">Once the physical or digital Proforma Invoice arrives from the consultant, click the <strong>Mark Received</strong> action on the payment request row. Status moves to <em>Proforma Received</em>.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">Review the entered details against the actual proforma document. When satisfied, click <strong>Verify Proforma</strong>. Add any <strong>Verification Notes</strong> if needed.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>Verify &amp; Request EFD/VFD</strong>. The system records who verified and when. Status moves to <em>Awaiting EFD/VFD</em>.</div></div>
+  </div>
+
+  <div class="warn"><strong>At this point</strong>, the accountant should contact the consultant and inform them that their Proforma Invoice has been verified and they must now submit an <strong>EFD (Electronic Fiscal Device) or VFD (Virtual Fiscal Device) receipt</strong> for the same amount before payment can be processed.</div>
+
+  <h4>Stage 3 — Record EFD / VFD Receipt</h4>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body">When the consultant sends their EFD or VFD receipt, click the <strong>Enter EFD/VFD</strong> action on the payment request row.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">A modal form appears. Enter:
+      <ul>
+        <li><strong>EFD / VFD Receipt Number</strong> — the fiscal device receipt number (e.g. DC-XXXXXXXXXX)</li>
+        <li><strong>Receipt Date</strong> — the date printed on the EFD/VFD receipt</li>
+        <li><strong>Receipt Amount</strong> — must match the proforma total</li>
+        <li>Optionally upload a <strong>scan of the receipt</strong></li>
+      </ul>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>Save EFD/VFD</strong>. Status moves to <em>EFD/VFD Received</em>. The payment request is now ready for payment.</div></div>
+  </div>
+
+  <div class="tip"><strong>EFD vs VFD:</strong> An EFD (Electronic Fiscal Device) is a physical printer connected to TRA. A VFD (Virtual Fiscal Device) is the software-based equivalent for businesses that issue digital receipts. Both are acceptable — enter whichever the consultant provides.</div>
+
+  <h4>Stage 4 — Record Payment</h4>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body">Once the bank transfer or payment is processed, click <strong>Mark Paid</strong> on the payment request row.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">Enter the <strong>Payment Date</strong>, <strong>Payment Reference / Voucher Number</strong>, and the <strong>Actual Amount Paid</strong>. Add payment notes if needed.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>Confirm Payment</strong>. Status moves to <em>Paid</em>. The request is now fully closed.</div></div>
+  </div>
+
+  <h4>Rejecting a Request</h4>
+  <p>If the Proforma Invoice is found to be invalid, incorrect, or the engagement is cancelled, click <strong>Reject</strong> (available at <em>Pending</em> or <em>Proforma Received</em> stages). You must enter a <strong>Reason for Rejection</strong>. The request moves to <em>Rejected</em> status and no further workflow actions are possible.</p>
+
+  <h4>Consultant Payment Request — Field Reference</h4>
+  <table>
+    <tr><th>Field</th><th>Stage</th><th>Description</th></tr>
+    <tr><td>Project</td><td>Create</td><td>The project this consultant is engaged on</td></tr>
+    <tr><td>Consultant Name / Staff</td><td>Create</td><td>Name of the external firm/individual or linked staff member</td></tr>
+    <tr><td>TIN Number</td><td>Create</td><td>Tax Identification Number — mandatory for compliance</td></tr>
+    <tr><td>VRN</td><td>Create</td><td>VAT Registration Number — required if consultant charges VAT</td></tr>
+    <tr><td>BRELA / Business Reg. No.</td><td>Create</td><td>Business registration number for formal companies</td></tr>
+    <tr><td>Proforma Invoice Number</td><td>Create</td><td>Invoice number printed on the consultant's proforma</td></tr>
+    <tr><td>Proforma Date</td><td>Create</td><td>Date on the proforma invoice</td></tr>
+    <tr><td>Service Description</td><td>Create</td><td>Clear description of the services billed</td></tr>
+    <tr><td>Net / VAT / Total Amount</td><td>Create</td><td>Financial amounts from the proforma; VAT auto-calculated at 18%</td></tr>
+    <tr><td>Proforma Attachment</td><td>Create</td><td>Scanned copy of the physical proforma invoice</td></tr>
+    <tr><td>Verification Notes</td><td>Stage 2</td><td>Accountant's notes on the verification check</td></tr>
+    <tr><td>EFD/VFD Receipt Number</td><td>Stage 3</td><td>The fiscal receipt number from TRA-registered device</td></tr>
+    <tr><td>EFD Receipt Date &amp; Amount</td><td>Stage 3</td><td>Date and amount on the EFD/VFD receipt</td></tr>
+    <tr><td>Payment Date &amp; Reference</td><td>Stage 4</td><td>Date and voucher/reference number of the actual bank payment</td></tr>
+    <tr><td>Bank Details</td><td>Create</td><td>Consultant's bank — used to process the payment transfer</td></tr>
+  </table>
 </div>
 
 <!-- ═══════════════════ MODULE 15: DOCUMENTS ═══════════════════ -->
@@ -1149,18 +1273,34 @@
   </ul>
 
   <h3>Company Settings</h3>
+  <p>Go to <strong>Settings → Company Settings</strong>. There are three sections:</p>
+
+  <h4>Company Letterhead</h4>
   <ul>
-    <li>Go to <strong>Settings → Company Settings</strong></li>
-    <li>Upload your <strong>Company Logo</strong> — this logo appears on all PDF exports (HIRA reports, audit reports, PTW permits, ESIA reports, etc.)</li>
-    <li>Set <strong>Company Name</strong> and <strong>Company Tagline</strong> shown on PDF headers and footers</li>
+    <li>Upload your <strong>Company Logo</strong> — appears on all PDF exports (invoices, HIRA, audit reports, PTW permits, ESIA reports, etc.)</li>
+    <li>Set <strong>Company Name</strong> and <strong>Tagline / Short Description</strong> shown on PDF headers and footers</li>
   </ul>
 
-  <div class="warn"><strong>Important:</strong> After uploading a new logo, all subsequent PDF exports will use the new logo immediately. Old PDFs that have already been downloaded are not affected.</div>
+  <h4>Company Contact &amp; Registration</h4>
+  <ul>
+    <li><strong>Company Address</strong> — shown in the "Bill From" section on client invoices</li>
+    <li><strong>TIN Number</strong> — your company's Tax Identification Number, shown on invoices for client reference</li>
+    <li><strong>Phone Number</strong> and <strong>Official Email</strong> — shown on invoices and official documents</li>
+  </ul>
+
+  <h4>Bank Details</h4>
+  <ul>
+    <li>Enter <strong>Bank Name</strong>, <strong>Branch</strong>, <strong>Account Name</strong>, <strong>Account Number</strong>, and <strong>SWIFT / BIC Code</strong></li>
+    <li>These appear as a <em>Payment Instructions</em> section on every client invoice PDF</li>
+    <li>If bank details are not filled in, the payment instructions section is hidden from the invoice PDF automatically</li>
+  </ul>
+
+  <div class="warn"><strong>Important:</strong> Fill in Company Address, TIN, and Bank Details before generating client invoices — these fields are required for the invoice to be compliant and useful to the client. After saving, all new PDF exports will use the updated information immediately.</div>
 </div>
 
 <!-- ═══════════════════ FOOTER ═══════════════════ -->
 <div style="background:#0f172a;color:#94a3b8;padding:24px 60px;font-size:8.5pt;display:flex;justify-content:space-between;align-items:center">
-  <span>PortalHSE Training Manual · Version 2.0 · June 2026</span>
+  <span>PortalHSE Training Manual · Version 2.1 · June 2026</span>
   <span>Confidential — Internal Use Only · © {{ date('Y') }} PortalHSE</span>
 </div>
 
