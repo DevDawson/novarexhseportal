@@ -62,41 +62,41 @@
       <div class="invoice-box-title">Invoice Summary</div>
 
       <div class="invoice-row">
-        <span class="inv-label">Invoice Number</span>
+        <span class="inv-label">Invoice Number: </span>
         <span class="inv-value">{{ $invoice->invoice_number }}</span>
       </div>
 
       <div class="invoice-row">
-        <span class="inv-label">Invoice Date</span>
+        <span class="inv-label">Invoice Date: </span>
         <span class="inv-value">{{ $invoice->invoice_date->format('d M Y') }}</span>
       </div>
 
       @if($invoice->due_date)
       <div class="invoice-row">
-        <span class="inv-label">Due Date</span>
+        <span class="inv-label">Due Date: </span>
         <span class="inv-value">{{ $invoice->due_date->format('d M Y') }}</span>
       </div>
       @endif
 
       @if($invoice->project)
       <div class="invoice-row">
-        <span class="inv-label">Project</span>
+        <span class="inv-label">Project: </span>
         <span class="inv-value">{{ $invoice->project->title }}</span>
       </div>
       @endif
 
       <div class="invoice-row">
-        <span class="inv-label">Total Amount</span>
+        <span class="inv-label">Total Amount: </span>
         <span class="inv-value total">TZS {{ number_format((float)$invoice->total_amount, 2) }}</span>
       </div>
 
       @if($invoice->amount_paid > 0)
       <div class="invoice-row">
-        <span class="inv-label">Amount Paid</span>
+        <span class="inv-label">Amount Paid: </span>
         <span class="inv-value paid">TZS {{ number_format((float)$invoice->amount_paid, 2) }}</span>
       </div>
       <div class="invoice-row">
-        <span class="inv-label">Balance Due</span>
+        <span class="inv-label">Balance Due: </span>
         <span class="inv-value {{ $invoice->balance > 0 ? 'balance' : 'paid' }}">
           TZS {{ number_format($invoice->balance, 2) }}
         </span>
@@ -104,7 +104,7 @@
       @endif
 
       <div class="invoice-row">
-        <span class="inv-label">Status</span>
+        <span class="inv-label">Status: </span>
         <span class="inv-value">{{ str_replace('_', ' ', ucwords($invoice->status)) }}</span>
       </div>
     </div>
