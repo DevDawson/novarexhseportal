@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/kifabest/novarexhseportal.azimiopos.online/
+    - export DEPLOYPATH=/home/novarexc/novaportal.novarex.co.tz
     - /bin/cp -R * $DEPLOYPATH
