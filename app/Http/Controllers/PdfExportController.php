@@ -17,7 +17,7 @@ use App\Models\MaturityAssessment;
 use App\Models\MaturityDimension;
 use App\Models\Setting;
 use App\Models\SocialIndicator;
-use App\Services\DocxService;
+use App\Services\DocxBuilderService;
 use App\Services\MaturityScoringService;
 use App\Services\RiskScoringService;
 use App\Models\EsiaBaselineData;
@@ -380,11 +380,11 @@ class PdfExportController extends Controller
 
         $hazard->load('project', 'responsiblePerson');
 
-        return DocxService::download('pdf.hira', [
-            'hazard'    => $hazard,
-            'initLevel' => RiskScoringService::level((int) $hazard->initial_risk_score),
-            'residLevel'=> RiskScoringService::level((int) $hazard->residual_risk_score),
-        ], "HIRA-{$hazard->id}-" . now()->format('Ymd'));
+        return DocxBuilderService::hira(
+            $hazard,
+            RiskScoringService::level((int) $hazard->initial_risk_score),
+            RiskScoringService::level((int) $hazard->residual_risk_score)
+        );
     }
 
     public function auditReportDocx(InternalAudit $audit): Response
@@ -393,9 +393,7 @@ class PdfExportController extends Controller
 
         $audit->load('leadAuditor', 'teamMembers', 'findings.responsiblePerson', 'project', 'department');
 
-        return DocxService::download('pdf.audit-report', [
-            'audit' => $audit,
-        ], "{$audit->audit_reference}-Report-" . now()->format('Ymd'));
+        return DocxBuilderService::auditReport($audit);
     }
 
     public function incidentReportDocx(Incident $incident): Response
@@ -404,10 +402,10 @@ class PdfExportController extends Controller
 
         $incident->load('project', 'reportedBy');
 
-        return DocxService::download('pdf.incident-report', [
-            'incident'  => $incident,
-            'riskLevel' => RiskScoringService::level((int) $incident->risk_score),
-        ], "Incident-{$incident->id}-Report-" . now()->format('Ymd'));
+        return DocxBuilderService::incidentReport(
+            $incident,
+            RiskScoringService::level((int) $incident->risk_score)
+        );
     }
 
     public function environmentalAspectDocx(EnvironmentalAspect $aspect): Response
@@ -416,10 +414,10 @@ class PdfExportController extends Controller
 
         $aspect->load('project', 'responsiblePerson');
 
-        return DocxService::download('pdf.environmental-aspect', [
-            'aspect'   => $aspect,
-            'sigLevel' => RiskScoringService::level((int) $aspect->significance_score),
-        ], "EMS-Aspect-{$aspect->id}-" . now()->format('Ymd'));
+        return DocxBuilderService::environmentalAspect(
+            $aspect,
+            RiskScoringService::level((int) $aspect->significance_score)
+        );
     }
 
     public function esiaReportDocx(EsiaReport $report): Response
@@ -428,18 +426,18 @@ class PdfExportController extends Controller
 
         $report->load('project', 'author', 'reviewedBy');
 
-        $projectId    = $report->project_id;
-        $screening    = EsiaScreening::where('project_id', $projectId)->latest()->first();
+        $projectId     = $report->project_id;
+        $screening     = EsiaScreening::where('project_id', $projectId)->latest()->first();
         $scopingIssues = EsiaScopingIssue::where('project_id', $projectId)->orderBy('sort_order')->get();
         $baselineData  = EsiaBaselineData::where('project_id', $projectId)->orderBy('parameter_type')->get();
         $impacts       = EsiaImpactAssessment::where('project_id', $projectId)->get();
         $mitigations   = EsiaMitigationAction::where('project_id', $projectId)->orderBy('timeline_start')->get();
         $submissions   = EsiaRegulatorySubmission::where('project_id', $projectId)->orderBy('submitted_at')->get();
 
-        return DocxService::download('pdf.esia-report', compact(
-            'report', 'screening', 'scopingIssues', 'baselineData',
-            'impacts', 'mitigations', 'submissions'
-        ), "ESIA-{$report->project_id}-Report-v{$report->version}-" . now()->format('Ymd'));
+        return DocxBuilderService::esiaReport(
+            $report, $screening, $scopingIssues,
+            $baselineData, $impacts, $mitigations, $submissions
+        );
     }
 
     public function esgSummaryDocx(): Response
@@ -451,8 +449,7 @@ class PdfExportController extends Controller
         $policies   = GovernancePolicy::where('status', 'active')->orderBy('review_date')->get();
         $social     = SocialIndicator::orderBy('period', 'desc')->orderBy('indicator_type')->get();
 
-        return DocxService::download('pdf.esg-summary', compact('targets', 'grievances', 'policies', 'social'),
-            'ESG-Summary-' . now()->format('Y-m-d'));
+        return DocxBuilderService::esgSummary($targets, $grievances, $policies, $social);
     }
 
     public function hazopStudyDocx(HazopStudy $study): Response
@@ -466,18 +463,14 @@ class PdfExportController extends Controller
             ->orderBy('node_number')
             ->get();
 
-        return DocxService::download('pdf.hazop-study', [
-            'study' => $study,
-            'nodes' => $nodes,
-        ], "{$study->study_ref}-Report-" . now()->format('Ymd'), 'landscape');
+        return DocxBuilderService::hazopStudy($study, $nodes);
     }
 
     public function hazopProcedureDocx(): Response
     {
         abort_unless(auth()->user()?->can('manage hazop'), 403);
 
-        return DocxService::download('pdf.hazop-procedure', [],
-            'NOVAREX-HAZOP-Procedure-PRO-HSE-HAZOP-001-' . now()->format('Ymd'));
+        return DocxBuilderService::hazopProcedure();
     }
 
     public function ptwPermitDocx(PermitToWork $permit): Response
@@ -493,11 +486,7 @@ class PdfExportController extends Controller
         $checklistItems = $permit->checklistItems()->get();
         $approvals      = $permit->approvals()->with('approver')->get();
 
-        return DocxService::download('pdf.ptw-permit', [
-            'permit'         => $permit,
-            'checklistItems' => $checklistItems,
-            'approvals'      => $approvals,
-        ], "{$permit->permit_number}-Certificate-" . now()->format('Ymd'));
+        return DocxBuilderService::ptwPermit($permit, $checklistItems, $approvals);
     }
 
     public function amsAuditReportDocx(InternalAudit $audit): Response
@@ -510,8 +499,7 @@ class PdfExportController extends Controller
             'amsCapaActions.responsiblePerson', 'amsCapaActions.nc',
         ]);
 
-        return DocxService::download('pdf.ams-audit-report', compact('audit'),
-            $audit->audit_reference . '-AMS-Report-' . now()->format('Ymd'));
+        return DocxBuilderService::amsAuditReport($audit);
     }
 
     public function environmentalAuditDocx(EnvironmentalAudit $audit): Response
@@ -525,8 +513,7 @@ class PdfExportController extends Controller
             'approvalLogs.user',
         ]);
 
-        return DocxService::download('pdf.environmental-audit', compact('audit'),
-            $audit->audit_number . '-Environmental-Audit-Report-' . now()->format('Ymd'));
+        return DocxBuilderService::environmentalAudit($audit);
     }
 
     public function invoiceDocx(Invoice $invoice): Response
@@ -544,10 +531,7 @@ class PdfExportController extends Controller
             'email'   => Setting::companyEmail(),
         ];
 
-        $bank = Setting::bankDetails();
-
-        return DocxService::download('pdf.invoice', compact('invoice', 'company', 'bank'),
-            "{$invoice->invoice_number}-" . now()->format('Ymd'));
+        return DocxBuilderService::invoicePdf($invoice, $company, Setting::bankDetails());
     }
 
     public function maturityScorecardDocx(MaturityAssessment $assessment): Response
@@ -589,9 +573,9 @@ class PdfExportController extends Controller
             default                                   => 'Initial — HSE management is ad-hoc, reactive, and largely undocumented.',
         };
 
-        return DocxService::download('pdf.maturity-scorecard', compact(
-            'assessment', 'breakdown', 'indicatorDetail', 'trend', 'levelDescription'
-        ), 'HSE-Maturity-Scorecard-' . $assessment->period . '-' . now()->format('Ymd'));
+        return DocxBuilderService::maturityScorecard(
+            $assessment, $breakdown, $indicatorDetail, $trend, $levelDescription
+        );
     }
 
     // ----------------------------------------------------------------

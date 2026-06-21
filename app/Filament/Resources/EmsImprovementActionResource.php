@@ -148,14 +148,14 @@ class EmsImprovementActionResource extends Resource
 
                 Tables\Columns\TextColumn::make('source')
                     ->label('Source')
-                    ->formatStateUsing(fn ($state) => EmsImprovementAction::SOURCE_LABELS[$s] ?? $s)
+                    ->formatStateUsing(fn ($state) => EmsImprovementAction::SOURCE_LABELS[$state] ?? $state)
                     ->badge()->color('primary')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('pdca_phase')
                     ->label('PDCA')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => strtoupper($s))
+                    ->formatStateUsing(fn ($state) => strtoupper($state))
                     ->color(fn ($state) => match ($state) {
                         'plan'  => 'info',
                         'do'    => 'warning',
@@ -166,12 +166,12 @@ class EmsImprovementActionResource extends Resource
 
                 Tables\Columns\TextColumn::make('priority')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => ucfirst($s))
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->color(fn ($state) => EmsImprovementAction::PRIORITY_COLORS[$state] ?? 'gray'),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => EmsImprovementAction::STATUS_LABELS[$s] ?? $s)
+                    ->formatStateUsing(fn ($state) => EmsImprovementAction::STATUS_LABELS[$state] ?? $state)
                     ->color(fn ($state) => EmsImprovementAction::STATUS_COLORS[$state] ?? 'gray'),
 
                 Tables\Columns\TextColumn::make('assignedTo.name')
