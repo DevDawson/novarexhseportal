@@ -56,6 +56,9 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
 
     Route::get('/maturity/{assessment}',   [PdfExportController::class, 'maturityScorecard'])
         ->name('maturity');
+
+    Route::get('/ems/full',                [PdfExportController::class, 'emsFullReport'])
+        ->name('ems.full');
 });
 
 // ----------------------------------------------------------------
@@ -101,4 +104,7 @@ Route::middleware(['auth', 'verified'])->prefix('docx')->name('docx.')->group(fu
 
     Route::get('/maturity/{assessment}',   [PdfExportController::class, 'maturityScorecardDocx'])
         ->name('maturity');
+
+    Route::get('/ems/full',                [PdfExportController::class, 'emsFullReportDocx'])
+        ->name('ems.full');
 });

@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EmsImprovementAction;
 use App\Models\EnvironmentalAspect;
+use App\Models\EnvironmentalMonitoringRecord;
+use App\Models\EnvironmentalPermit;
 use App\Models\EsgTarget;
 use App\Models\Grievance;
 use App\Models\GovernancePolicy;
+use App\Models\LegalRegisterItem;
+use App\Models\SpillReport;
+use App\Models\WasteTrackingRecord;
 use App\Models\HazardRegister;
 use App\Models\HazopStudy;
 use App\Models\Incident;
@@ -576,6 +582,43 @@ class PdfExportController extends Controller
         return DocxBuilderService::maturityScorecard(
             $assessment, $breakdown, $indicatorDetail, $trend, $levelDescription
         );
+    }
+
+    // ================================================================
+    // EMS FULL REPORT + SECTION EXPORTS
+    // ================================================================
+
+    private function emsData(): array
+    {
+        return [
+            'aspects'           => EnvironmentalAspect::with('project', 'responsiblePerson')->orderBy('impact_category')->get(),
+            'legalItems'        => LegalRegisterItem::orderBy('requirement_type')->get(),
+            'permits'           => EnvironmentalPermit::with('project', 'responsibleOfficer')->orderBy('expiry_date')->get(),
+            'monitoringRecords' => EnvironmentalMonitoringRecord::with('project', 'recordedBy')->orderByDesc('record_date')->get(),
+            'wasteRecords'      => WasteTrackingRecord::with('project')->orderByDesc('generation_date')->get(),
+            'spillReports'      => SpillReport::with('project', 'reportedBy')->orderByDesc('spill_date')->get(),
+            'ciActions'         => EmsImprovementAction::with('assignedTo', 'project')->orderBy('target_date')->get(),
+        ];
+    }
+
+    public function emsFullReport(): Response
+    {
+        abort_unless(auth()->user()?->hasAnyRole(['md', 'hse_manager', 'hse_staff', 'lead_auditor', 'business_director']), 403);
+
+        $data = $this->emsData();
+
+        $pdf = Pdf::loadView('pdf.ems-full-report', $data)->setPaper('a4', 'landscape');
+
+        return $pdf->download('EMS-Full-Report-' . now()->format('Ymd') . '.pdf');
+    }
+
+    public function emsFullReportDocx(): Response
+    {
+        abort_unless(auth()->user()?->hasAnyRole(['md', 'hse_manager', 'hse_staff', 'lead_auditor', 'business_director']), 403);
+
+        $data = $this->emsData();
+
+        return DocxBuilderService::emsFullReport(...array_values($data));
     }
 
     // ----------------------------------------------------------------

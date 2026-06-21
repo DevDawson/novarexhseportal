@@ -137,16 +137,34 @@ class SpillReportResource extends Resource
                 Tables\Columns\TextColumn::make('spill_date')->date('d M Y')->sortable(),
                 Tables\Columns\TextColumn::make('location')->searchable()->limit(25),
                 Tables\Columns\TextColumn::make('substance_spilled')->limit(25),
-                Tables\Columns\BadgeColumn::make('substance_type')
+                Tables\Columns\TextColumn::make('substance_type')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => ucfirst($state))
-                    ->colors(['danger' => ['acid', 'chemical'], 'warning' => ['fuel', 'oil'], 'gray' => 'other']),
-                Tables\Columns\BadgeColumn::make('environmental_media_affected')
+                    ->color(fn ($state) => match ($state) {
+                        'acid', 'chemical' => 'danger',
+                        'fuel', 'oil'      => 'warning',
+                        default            => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('environmental_media_affected')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => ucwords(str_replace('_', ' ', $state)))
-                    ->colors(['danger' => 'water', 'warning' => 'soil', 'gray' => 'none']),
+                    ->color(fn ($state) => match ($state) {
+                        'water'  => 'danger',
+                        'soil'   => 'warning',
+                        'none'   => 'gray',
+                        default  => 'info',
+                    }),
                 Tables\Columns\IconColumn::make('regulatory_notification_required')->label('Regulatory')->boolean()->toggleable(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors(['danger' => 'reported', 'warning' => 'contained', 'primary' => 'cleaned_up', 'success' => 'closed'])
-                    ->formatStateUsing(fn ($state) => ucwords(str_replace('_', ' ', $state))),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => ucwords(str_replace('_', ' ', $state)))
+                    ->color(fn ($state) => match ($state) {
+                        'reported'   => 'danger',
+                        'contained'  => 'warning',
+                        'cleaned_up' => 'primary',
+                        'closed'     => 'success',
+                        default      => 'gray',
+                    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
