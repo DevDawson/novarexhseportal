@@ -63,7 +63,7 @@ class EsgMaturityIndexWidget extends BaseWidget
                     . ' | WR: ' . number_format((float)($scores['wr'] ?? 0), 1) . '%'
                     . ' | EMS: ' . number_format((float)($scores['ems'] ?? 0), 1) . '%'
                 )
-                ->descriptionIcon('heroicon-o-leaf')
+                ->descriptionIcon('heroicon-o-globe-europe-africa')
                 ->color(match (true) {
                     (float)$composite['e'] >= 90 => 'success',
                     (float)$composite['e'] >= 80 => 'info',

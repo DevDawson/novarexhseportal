@@ -212,32 +212,32 @@ class EsgMaturityAssessmentResource extends Resource
                     ->badge()->color('gray')->sortable(),
 
                 Tables\Columns\TextColumn::make('period_type')
-                    ->formatStateUsing(fn ($s) => ucfirst($s))
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn ($s) => ucfirst($s))
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->color(fn ($state) => $state === 'finalized' ? 'success' : 'warning'),
 
                 Tables\Columns\TextColumn::make('e_score')
                     ->label('E (40%)')
-                    ->formatStateUsing(fn ($s) => $s ? number_format((float)$s, 1) . '%' : '—')
+                    ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 1) . '%' : '—')
                     ->badge()->color('success'),
 
                 Tables\Columns\TextColumn::make('s_score')
                     ->label('S (30%)')
-                    ->formatStateUsing(fn ($s) => $s ? number_format((float)$s, 1) . '%' : '—')
+                    ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 1) . '%' : '—')
                     ->badge()->color('info'),
 
                 Tables\Columns\TextColumn::make('g_score')
                     ->label('G (30%)')
-                    ->formatStateUsing(fn ($s) => $s ? number_format((float)$s, 1) . '%' : '—')
+                    ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 1) . '%' : '—')
                     ->badge()->color('primary'),
 
                 Tables\Columns\TextColumn::make('esg_mi')
                     ->label('ESG-MI')
-                    ->formatStateUsing(fn ($s) => $s ? number_format((float)$s, 2) . '%' : '—')
+                    ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 2) . '%' : '—')
                     ->badge()
                     ->color(fn ($record) => $record->esg_mi
                         ? EsgMaturityAssessment::emiToColor(EsgMaturityAssessment::emiToLevel((float) $record->esg_mi))
@@ -247,7 +247,7 @@ class EsgMaturityAssessmentResource extends Resource
                 Tables\Columns\TextColumn::make('esg_mi')
                     ->label('Level')
                     ->name('level')
-                    ->formatStateUsing(fn ($s) => $s ? EsgMaturityAssessment::emiToLevel((float) $s) : '—')
+                    ->formatStateUsing(fn ($state) => $state ? EsgMaturityAssessment::emiToLevel((float) $state) : '—')
                     ->badge()
                     ->color(fn ($record) => $record->esg_mi
                         ? EsgMaturityAssessment::emiToColor(EsgMaturityAssessment::emiToLevel((float) $record->esg_mi))
