@@ -60,16 +60,23 @@ class DocxService
 
         Html::addHtml($section, $html, false, false);
 
-        $writer = IOFactory::createWriter($phpWord, 'Word2007');
+        // Save to a real temp file — avoids ob_start() capturing stray PHP output
+        // (notices, debug output) that would corrupt the ZIP structure of DOCX.
+        $tmp = tempnam(sys_get_temp_dir(), 'phpdocx_');
 
-        ob_start();
-        $writer->save('php://output');
-        $content = ob_get_clean();
+        $writer = IOFactory::createWriter($phpWord, 'Word2007');
+        $writer->save($tmp);
+
+        $content = file_get_contents($tmp);
+        @unlink($tmp);
 
         return response($content, 200, [
             'Content-Type'        => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'Content-Disposition' => 'attachment; filename="' . $filename . '.docx"',
-            'Cache-Control'       => 'no-cache, no-store',
+            'Content-Length'      => strlen($content),
+            'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            'Pragma'              => 'no-cache',
+            'Expires'             => '0',
         ]);
     }
 
