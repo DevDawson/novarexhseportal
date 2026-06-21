@@ -780,42 +780,46 @@ class DocxBuilderService
         Collection $spillReports,
         Collection $ciActions
     ): Response {
-        [$word, $sec] = self::doc('landscape');
+        [$word, $sec] = self::doc();
         self::header($sec, 'ENVIRONMENTAL MANAGEMENT SYSTEM — FULL REPORT', 'EMS-FULL-' . now()->format('Y-m-d'));
 
-        // Summary overview table
+        // Overview: vertical 2-column summary
         self::h2($sec, 'Overview');
-        $lw = 11520;
-        $t = self::dataTable($sec,
-            ['Aspects & Impacts', 'Legal Items', 'Active Permits', 'Monitoring Records', 'Waste Records', 'Spill Reports', 'CI Actions'],
-            [1646, 1646, 1646, 1646, 1646, 1646, 1644], $lw);
-        $r = $t->addRow();
+        $ov = $sec->addTable([
+            'borderSize' => 6, 'borderColor' => 'e5e7eb', 'cellMargin' => 80,
+            'width' => self::PAGE_W, 'unit' => TblWidth::TWIP,
+        ]);
         foreach ([
-            $aspects->count(),
-            $legalItems->count(),
-            $permits->where('status', 'active')->count() . ' / ' . $permits->count(),
-            $monitoringRecords->count(),
-            $wasteRecords->count(),
-            $spillReports->count(),
-            $ciActions->count(),
-        ] as $val) {
-            self::td($r, (string)$val, 1646, true);
+            'Environmental Aspects & Impacts' => $aspects->count(),
+            'Legal & Compliance Items'        => $legalItems->count(),
+            'Active Permits / Total Permits'  => $permits->where('status', 'active')->count() . ' / ' . $permits->count(),
+            'Monitoring Records'              => $monitoringRecords->count(),
+            'Waste Tracking Records'          => $wasteRecords->count(),
+            'Spill Reports'                   => $spillReports->count(),
+            'CI Improvement Actions'          => $ciActions->count(),
+        ] as $label => $count) {
+            $row = $ov->addRow();
+            $lc = $ov->addCell(6500, ['bgColor' => 'f0f4ff']);
+            $lc->addText($label, self::font(9, self::NAVY), self::para());
+            $vc = $ov->addCell(2860);
+            $vc->addText((string)$count, ['bold' => true, 'size' => 10, 'color' => self::NAVY], ['alignment' => 'right']);
         }
+        $sec->addTextBreak(1);
 
-        // 1. Aspects
+        // 1. Aspects & Impacts
         self::h2($sec, '1. Environmental Aspects & Impacts (' . $aspects->count() . ')');
         if ($aspects->isNotEmpty()) {
             $t = self::dataTable($sec,
-                ['Aspect', 'Impact', 'Category', 'Significance', 'Score', 'Project'],
-                [2400, 2400, 1500, 1400, 800, 3020], $lw);
+                ['Aspect', 'Impact', 'Category', 'Score', 'Status', 'Project'],
+                [2200, 2200, 1300, 700, 860, 2100]);
             foreach ($aspects as $a) {
                 $r = $t->addRow();
-                self::td($r, $a->environmental_aspect ?? '—', 2400);
-                self::td($r, $a->environmental_impact ?? '—', 2400);
-                self::td($r, ucwords(str_replace('_', ' ', $a->impact_category ?? '—')), 1500);
-                self::td($r, ucfirst($a->significance_level ?? '—'), 1400);
-                self::td($r, (string)($a->significance_score ?? '—'), 800, true);
-                self::td($r, $a->project?->title ?? 'Company-wide', 3020);
+                self::td($r, $a->environmental_aspect ?? '—', 2200);
+                self::td($r, $a->environmental_impact ?? '—', 2200);
+                self::td($r, ucwords(str_replace('_', ' ', $a->impact_category ?? '—')), 1300);
+                self::td($r, (string)($a->significance_score ?? '—'), 700, true);
+                self::td($r, ucwords(str_replace('_', ' ', $a->status ?? '—')), 860);
+                self::td($r, $a->project?->title ?? 'Company-wide', 2100);
             }
         } else {
             $sec->addText('No aspects recorded.', self::font(9, self::GRAY), self::para());
@@ -826,15 +830,15 @@ class DocxBuilderService
         if ($legalItems->isNotEmpty()) {
             $t = self::dataTable($sec,
                 ['Requirement', 'Type', 'Authority', 'Compliance Status', 'Expiry', 'Review Due'],
-                [3200, 1400, 1800, 1700, 1200, 1220], $lw);
+                [3000, 1300, 1800, 1500, 900, 860]);
             foreach ($legalItems as $l) {
                 $r = $t->addRow();
-                self::td($r, $l->requirement_title ?? '—', 3200);
-                self::td($r, ucwords(str_replace('_', ' ', $l->requirement_type ?? '—')), 1400);
+                self::td($r, $l->requirement_title ?? '—', 3000);
+                self::td($r, ucwords(str_replace('_', ' ', $l->requirement_type ?? '—')), 1300);
                 self::td($r, $l->issuing_authority ?? '—', 1800);
-                self::td($r, ucwords(str_replace('_', ' ', $l->compliance_status ?? '—')), 1700);
-                self::td($r, $l->expiry_date?->format('d M Y') ?? '—', 1200);
-                self::td($r, $l->next_review_date?->format('d M Y') ?? '—', 1220);
+                self::td($r, ucwords(str_replace('_', ' ', $l->compliance_status ?? '—')), 1500);
+                self::td($r, $l->expiry_date?->format('d M Y') ?? '—', 900);
+                self::td($r, $l->next_review_date?->format('d M Y') ?? '—', 860);
             }
         } else {
             $sec->addText('No legal requirements recorded.', self::font(9, self::GRAY), self::para());
@@ -845,16 +849,16 @@ class DocxBuilderService
         if ($permits->isNotEmpty()) {
             $t = self::dataTable($sec,
                 ['Permit No.', 'Type', 'Authority', 'Issue Date', 'Expiry', 'Status', 'Project'],
-                [1200, 1800, 2000, 1100, 1100, 1100, 2220], $lw);
+                [1000, 1500, 1700, 900, 900, 1000, 2360]);
             foreach ($permits as $p) {
                 $r = $t->addRow();
-                self::td($r, $p->permit_number, 1200);
-                self::td($r, ucwords(str_replace('_', ' ', $p->permit_type ?? '—')), 1800);
-                self::td($r, $p->issuing_authority ?? '—', 2000);
-                self::td($r, $p->issue_date?->format('d M Y') ?? '—', 1100);
-                self::td($r, $p->expiry_date?->format('d M Y') ?? 'Indefinite', 1100);
-                self::td($r, ucwords(str_replace('_', ' ', $p->status)), 1100);
-                self::td($r, $p->project?->title ?? '—', 2220);
+                self::td($r, $p->permit_number ?? '—', 1000);
+                self::td($r, ucwords(str_replace('_', ' ', $p->permit_type ?? '—')), 1500);
+                self::td($r, $p->issuing_authority ?? '—', 1700);
+                self::td($r, $p->issue_date?->format('d M Y') ?? '—', 900);
+                self::td($r, $p->expiry_date?->format('d M Y') ?? 'Indefinite', 900);
+                self::td($r, ucwords(str_replace('_', ' ', $p->status ?? '—')), 1000);
+                self::td($r, $p->project?->title ?? '—', 2360);
             }
         } else {
             $sec->addText('No permits recorded.', self::font(9, self::GRAY), self::para());
@@ -864,16 +868,15 @@ class DocxBuilderService
         self::h2($sec, '4. Environmental Monitoring Records (' . $monitoringRecords->count() . ')');
         if ($monitoringRecords->isNotEmpty()) {
             $t = self::dataTable($sec,
-                ['Date', 'Metric Type', 'Value', 'Status', 'Project', 'Recorded By'],
-                [1200, 2800, 1200, 1500, 2520, 2300], $lw);
+                ['Date', 'Metric Type', 'Value & Unit', 'Notes', 'Project'],
+                [1100, 2500, 1200, 2760, 1800]);
             foreach ($monitoringRecords as $m) {
                 $r = $t->addRow();
-                self::td($r, $m->record_date?->format('d M Y') ?? '—', 1200);
-                self::td($r, EnvironmentalMonitoringRecord::METRIC_TYPE_LABELS[$m->metric_type] ?? ucwords(str_replace('_', ' ', $m->metric_type)), 2800);
+                self::td($r, $m->record_date?->format('d M Y') ?? '—', 1100);
+                self::td($r, EnvironmentalMonitoringRecord::METRIC_TYPE_LABELS[$m->metric_type] ?? ucwords(str_replace('_', ' ', $m->metric_type ?? '—')), 2500);
                 self::td($r, ($m->value ?? '—') . ' ' . ($m->unit ?? ''), 1200, true);
-                self::td($r, ucwords(str_replace('_', ' ', $m->status ?? '—')), 1500);
-                self::td($r, $m->project?->title ?? 'Company-wide', 2520);
-                self::td($r, $m->recordedBy?->name ?? '—', 2300);
+                self::td($r, $m->notes ?? '—', 2760);
+                self::td($r, $m->project?->title ?? 'Company-wide', 1800);
             }
         } else {
             $sec->addText('No monitoring records.', self::font(9, self::GRAY), self::para());
@@ -884,16 +887,16 @@ class DocxBuilderService
         if ($wasteRecords->isNotEmpty()) {
             $t = self::dataTable($sec,
                 ['Type', 'Description', 'Quantity', 'Disposal Method', 'Date', 'Status', 'Project'],
-                [1300, 2800, 900, 1700, 1100, 1000, 1720], $lw);
+                [1200, 2300, 900, 1700, 1000, 900, 1360]);
             foreach ($wasteRecords as $w) {
                 $r = $t->addRow();
-                self::td($r, ucwords(str_replace('_', ' ', $w->waste_type)), 1300);
-                self::td($r, $w->waste_description ?? '—', 2800);
+                self::td($r, ucwords(str_replace('_', ' ', $w->waste_type ?? '—')), 1200);
+                self::td($r, $w->waste_description ?? '—', 2300);
                 self::td($r, ($w->quantity ?? '—') . ' ' . ($w->unit ?? ''), 900, true);
                 self::td($r, ucwords(str_replace('_', ' ', $w->disposal_method ?? '—')), 1700);
-                self::td($r, $w->generation_date?->format('d M Y') ?? '—', 1100);
-                self::td($r, ucwords(str_replace('_', ' ', $w->status)), 1000);
-                self::td($r, $w->project?->title ?? '—', 1720);
+                self::td($r, $w->generation_date?->format('d M Y') ?? '—', 1000);
+                self::td($r, ucwords(str_replace('_', ' ', $w->status ?? '—')), 900);
+                self::td($r, $w->project?->title ?? '—', 1360);
             }
         } else {
             $sec->addText('No waste records.', self::font(9, self::GRAY), self::para());
@@ -904,15 +907,15 @@ class DocxBuilderService
         if ($spillReports->isNotEmpty()) {
             $t = self::dataTable($sec,
                 ['Reference', 'Date', 'Substance', 'Volume', 'Media Affected', 'Status'],
-                [1400, 1100, 2200, 1000, 2000, 900], $lw);
-            foreach ($spillReports as $s) {
+                [1300, 1000, 2500, 1000, 1800, 1760]);
+            foreach ($spillReports as $sp) {
                 $r = $t->addRow();
-                self::td($r, $s->spill_reference ?? '—', 1400);
-                self::td($r, $s->spill_date?->format('d M Y') ?? '—', 1100);
-                self::td($r, ($s->substance_spilled ?? '—') . ' (' . ucfirst($s->substance_type ?? '—') . ')', 2200);
-                self::td($r, $s->estimated_volume ? $s->estimated_volume . ' ' . $s->volume_unit : '—', 1000, true);
-                self::td($r, ucwords(str_replace('_', ' ', $s->environmental_media_affected ?? '—')), 2000);
-                self::td($r, ucwords(str_replace('_', ' ', $s->status)), 900);
+                self::td($r, $sp->spill_reference ?? '—', 1300);
+                self::td($r, $sp->spill_date?->format('d M Y') ?? '—', 1000);
+                self::td($r, ($sp->substance_spilled ?? '—') . ' (' . ucfirst($sp->substance_type ?? '—') . ')', 2500);
+                self::td($r, $sp->estimated_volume ? $sp->estimated_volume . ' ' . $sp->volume_unit : '—', 1000, true);
+                self::td($r, ucwords(str_replace('_', ' ', $sp->environmental_media_affected ?? '—')), 1800);
+                self::td($r, ucwords(str_replace('_', ' ', $sp->status ?? '—')), 1760);
             }
         } else {
             $sec->addText('No spill reports recorded.', self::font(9, self::GRAY), self::para());
@@ -923,16 +926,16 @@ class DocxBuilderService
         if ($ciActions->isNotEmpty()) {
             $t = self::dataTable($sec,
                 ['Reference', 'Title', 'PDCA', 'Priority', 'Assigned To', 'Target Date', 'Status'],
-                [1000, 3200, 700, 800, 1500, 1100, 1220], $lw);
+                [900, 3100, 600, 800, 1400, 900, 1660]);
             foreach ($ciActions as $c) {
                 $r = $t->addRow();
-                self::td($r, $c->reference ?? '—', 1000);
-                self::td($r, $c->title ?? '—', 3200);
-                self::td($r, strtoupper($c->pdca_phase ?? '—'), 700, true);
+                self::td($r, $c->reference ?? '—', 900);
+                self::td($r, $c->title ?? '—', 3100);
+                self::td($r, strtoupper($c->pdca_phase ?? '—'), 600, true);
                 self::td($r, ucfirst($c->priority ?? '—'), 800);
-                self::td($r, $c->assignedTo?->name ?? '—', 1500);
-                self::td($r, $c->target_date?->format('d M Y') ?? '—', 1100);
-                self::td($r, EmsImprovementAction::STATUS_LABELS[$c->status] ?? ucfirst($c->status ?? '—'), 1220);
+                self::td($r, $c->assignedTo?->name ?? '—', 1400);
+                self::td($r, $c->target_date?->format('d M Y') ?? '—', 900);
+                self::td($r, EmsImprovementAction::STATUS_LABELS[$c->status] ?? ucfirst($c->status ?? '—'), 1660);
             }
         } else {
             $sec->addText('No CI actions recorded.', self::font(9, self::GRAY), self::para());
