@@ -8,10 +8,17 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Production: use ProductionSeeder instead
+        //   php artisan db:seed --class=ProductionSeeder
+        //
+        // Demo/dev only:
+        //   php artisan db:seed --class=DemoDataSeeder
         $this->call([
-            RoleSeeder::class,       // Roles & permissions (must run first)
-            LeaveTypeSeeder::class,  // Default Tanzania leave types
-            DemoDataSeeder::class,   // Departments, users, clients, projects, etc.
+            RoleSeeder::class,
+            AdminUserSeeder::class,
+            LeaveTypeSeeder::class,
+            MaturitySeeder::class,
+            CompanySettingsSeeder::class,
         ]);
     }
 }
