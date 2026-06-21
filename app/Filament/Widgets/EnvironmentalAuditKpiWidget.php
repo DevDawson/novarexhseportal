@@ -31,7 +31,7 @@ class EnvironmentalAuditKpiWidget extends BaseWidget
     {
         try {
             return $this->buildStats();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return [
                 Stat::make('Environmental Audit KPIs', '—')
                     ->description('Pending: php artisan migrate --force on production')

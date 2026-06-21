@@ -8,7 +8,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class EsgMaturityIndexWidget extends BaseWidget
 {
-    protected static ?int $sort = 15;
+    protected static ?int $sort = 17;
     protected static ?string $pollingInterval = '120s';
 
     public function getHeading(): string
@@ -25,7 +25,7 @@ class EsgMaturityIndexWidget extends BaseWidget
     {
         try {
             return $this->buildStats();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return [
                 Stat::make('ESG Maturity Index', '—')
                     ->description('Pending: php artisan migrate --force on production')

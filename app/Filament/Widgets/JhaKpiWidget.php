@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\JhaAnalysis;
-use App\Models\JhaHazard;
 use App\Models\JhaControlMeasure;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -22,7 +21,7 @@ class JhaKpiWidget extends BaseWidget
     {
         try {
             return $this->buildStats();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return [
                 Stat::make('JHA KPIs', '—')
                     ->description('Pending: php artisan migrate --force on production')
@@ -47,10 +46,6 @@ class JhaKpiWidget extends BaseWidget
             fn ($q) => $q->whereIn('initial_risk_level', ['high', 'critical'])
         )->count();
         $highRiskRate = $total > 0 ? round($highRiskJhas / $total * 100, 1) : 0;
-
-        // Total hazards & those with residual risk NOT accepted (residual >= initial)
-        $totalHazards   = JhaHazard::count();
-        $rejectedHazards = JhaHazard::where('residual_accepted', false)->count();
 
         // Control implementation compliance
         $totalControls       = JhaControlMeasure::count();

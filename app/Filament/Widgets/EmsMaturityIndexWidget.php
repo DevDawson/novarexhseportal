@@ -25,7 +25,7 @@ class EmsMaturityIndexWidget extends BaseWidget
     {
         try {
             return $this->buildStats();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return [
                 Stat::make('EMS Maturity Index', '—')
                     ->description('Pending: php artisan migrate --force on production')

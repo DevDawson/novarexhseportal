@@ -26,7 +26,7 @@ class EmsContinualImprovementWidget extends BaseWidget
     {
         try {
             return $this->buildStats();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return [
                 Stat::make('EMS Continual Improvement', '—')
                     ->description('Pending: php artisan migrate --force on production')

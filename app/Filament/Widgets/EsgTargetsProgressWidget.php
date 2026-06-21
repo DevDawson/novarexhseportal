@@ -34,13 +34,15 @@ class EsgTargetsProgressWidget extends BaseWidget
                     ->label('Period')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('category')
+                Tables\Columns\TextColumn::make('category')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => EsgTarget::CATEGORY_LABELS[$state] ?? $state)
-                    ->colors([
-                        'success' => 'environmental',
-                        'info'    => 'social',
-                        'warning' => 'governance',
-                    ]),
+                    ->color(fn ($state) => match ($state) {
+                        'environmental' => 'success',
+                        'social'        => 'info',
+                        'governance'    => 'warning',
+                        default         => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('indicator')
                     ->limit(45)
@@ -70,15 +72,16 @@ class EsgTargetsProgressWidget extends BaseWidget
                         default                              => 'danger',
                     }),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => EsgTarget::STATUS_LABELS[$state] ?? $state)
-                    ->colors([
-                        'success' => 'achieved',
-                        'info'    => 'on_track',
-                        'warning' => 'at_risk',
-                        'danger'  => 'off_track',
-                        'gray'    => 'not_started',
-                    ]),
+                    ->color(fn ($state) => match ($state) {
+                        'achieved'    => 'success',
+                        'on_track'    => 'info',
+                        'at_risk'     => 'warning',
+                        'off_track'   => 'danger',
+                        default       => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('owner.name')
                     ->label('Owner')
