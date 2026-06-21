@@ -6,12 +6,12 @@
 <div class="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
     {{-- Colour band per level --}}
     @php
-        $bandColor = match($color) {
-            'success' => 'bg-green-600',
-            'info'    => 'bg-blue-600',
-            'primary' => 'bg-indigo-600',
-            'warning' => 'bg-yellow-500',
-            default   => 'bg-red-600',
+        $bandStyle = match($color) {
+            'success' => 'background-color:#16a34a',
+            'info'    => 'background-color:#2563eb',
+            'primary' => 'background-color:#4338ca',
+            'warning' => 'background-color:#d97706',
+            default   => 'background-color:#dc2626',
         };
         $textColor = match($color) {
             'success' => 'text-green-700 dark:text-green-300',
@@ -28,7 +28,7 @@
             default   => 'bg-red-50 dark:bg-red-900/20',
         };
     @endphp
-    <div class="{{ $bandColor }} px-6 py-3 flex items-center justify-between">
+    <div style="{{ $bandStyle }}" class="px-6 py-3 flex items-center justify-between">
         <div class="text-white">
             <div class="text-xs font-medium uppercase tracking-widest opacity-80">EMS Maturity Index (EMI)</div>
             <div class="text-2xl font-bold mt-0.5">{{ number_format($emi, 2) }}% — {{ $level }}</div>

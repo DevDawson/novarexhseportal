@@ -5,12 +5,12 @@
     $level = $composite['level'];
     $color = $composite['color'];
 
-    $bandColor = match($color) {
-        'success' => 'bg-emerald-700',
-        'info'    => 'bg-blue-600',
-        'primary' => 'bg-indigo-600',
-        'warning' => 'bg-amber-500',
-        default   => 'bg-red-600',
+    $bandStyle = match($color) {
+        'success' => 'background-color:#047857',
+        'info'    => 'background-color:#2563eb',
+        'primary' => 'background-color:#4338ca',
+        'warning' => 'background-color:#d97706',
+        default   => 'background-color:#dc2626',
     };
     $textAccent = match($color) {
         'success' => 'text-emerald-600 dark:text-emerald-400',
@@ -70,7 +70,7 @@
      ESG-MI HEADLINE BANNER
 ══════════════════════════════════════════════════════════════ --}}
 <div class="mb-6 rounded-xl overflow-hidden shadow border border-gray-200 dark:border-gray-700">
-    <div class="{{ $bandColor }} px-6 py-4">
+    <div style="{{ $bandStyle }}" class="px-6 py-4">
         <div class="flex items-end justify-between">
             <div class="text-white">
                 <div class="text-xs font-semibold uppercase tracking-widest opacity-75">ESG Maturity Index (ESG-MI)</div>
@@ -137,11 +137,17 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
     @foreach($components as $key => $comp)
     @php
-        $hdr = match($comp['color']) {
-            'emerald' => 'bg-emerald-700 text-white',
-            'blue'    => 'bg-blue-700 text-white',
-            'violet'  => 'bg-violet-700 text-white',
-            default   => 'bg-gray-700 text-white',
+        $hdrStyle = match($comp['color']) {
+            'emerald' => 'background-color:#065f46',
+            'blue'    => 'background-color:#1e40af',
+            'violet'  => 'background-color:#5b21b6',
+            default   => 'background-color:#374151',
+        };
+        $barStyle = match($comp['color']) {
+            'emerald' => 'background-color:#10b981',
+            'blue'    => 'background-color:#3b82f6',
+            'violet'  => 'background-color:#8b5cf6',
+            default   => 'background-color:#6b7280',
         };
         $row = match($comp['color']) {
             'emerald' => 'bg-emerald-50 dark:bg-emerald-900/10',
@@ -149,15 +155,9 @@
             'violet'  => 'bg-violet-50 dark:bg-violet-900/10',
             default   => '',
         };
-        $bar = match($comp['color']) {
-            'emerald' => 'bg-emerald-500',
-            'blue'    => 'bg-blue-500',
-            'violet'  => 'bg-violet-500',
-            default   => 'bg-gray-500',
-        };
     @endphp
     <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="{{ $hdr }} px-4 py-3 flex items-center justify-between">
+        <div style="{{ $hdrStyle }}" class="text-white px-4 py-3 flex items-center justify-between">
             <div>
                 <div class="text-xs font-bold uppercase tracking-widest opacity-75">{{ $comp['icon'] }} {{ $key }} Component</div>
                 <div class="font-semibold">{{ $comp['label'] }} · Weight {{ $comp['weight'] }}%</div>
@@ -189,7 +189,7 @@
                     </div>
                 </div>
                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                    <div class="{{ $bar }} h-1.5 rounded-full" style="width: {{ $barWidth }}%"></div>
+                    <div class="h-1.5 rounded-full" style="{{ $barStyle }};width:{{ $barWidth }}%"></div>
                 </div>
             </div>
             @endforeach
