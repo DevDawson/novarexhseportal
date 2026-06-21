@@ -40,6 +40,12 @@ class DocxService
         // Collapse excessive whitespace from removed elements
         $html = preg_replace('/\n{3,}/', "\n\n", $html);
 
+        // PhpWord::Html::addHtml() uses DOMDocument::loadXML() internally, which
+        // requires strict XHTML — HTML5 entities (&nbsp; etc.) and unclosed tags
+        // (<br>, <input>) cause a fatal parse error. We sanitize by round-tripping
+        // through DOMDocument::loadHTML() (lenient) → saveXML() (strict XML output).
+        $html = self::htmlToXhtml($html);
+
         $phpWord = new PhpWord();
         $phpWord->setDefaultFontName('Calibri');
         $phpWord->setDefaultFontSize(11);
@@ -65,5 +71,34 @@ class DocxService
             'Content-Disposition' => 'attachment; filename="' . $filename . '.docx"',
             'Cache-Control'       => 'no-cache, no-store',
         ]);
+    }
+
+    private static function htmlToXhtml(string $html): string
+    {
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+
+        libxml_use_internal_errors(true);
+        // The charset meta tag tells DOMDocument to treat input as UTF-8
+        $dom->loadHTML(
+            '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>'
+            . $html
+            . '</body></html>',
+            LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+        libxml_use_internal_errors(false);
+
+        // Extract only the <body> children as XHTML fragments
+        $body = $dom->getElementsByTagName('body')->item(0);
+        if (! $body) {
+            return $html;
+        }
+
+        $xhtml = '';
+        foreach ($body->childNodes as $child) {
+            $xhtml .= $dom->saveXML($child);
+        }
+
+        return $xhtml ?: $html;
     }
 }
