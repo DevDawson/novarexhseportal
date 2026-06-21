@@ -111,7 +111,7 @@
   <div class="cover-title">System Training Manual</div>
   <div class="cover-sub">Complete step-by-step guide for all roles — covering every module, workflow, and feature of the PortalHSE platform.</div>
   <div class="cover-meta">
-    <span>Version 2.1 — June 2026</span>
+    <span>Version 2.2 — June 2026</span>
     <span>11 HSE + Supporting Modules · All Roles Covered</span>
     <span>Confidential — Internal Use Only</span>
   </div>
@@ -193,14 +193,23 @@
     <tr><td>HSE KPI Overview</td><td>Incident frequency rate, open CAPA, compliance %</td><td>MD, HSE Staff, HR Director</td></tr>
     <tr><td>Revenue vs Expenses</td><td>Monthly bar chart of invoiced revenue vs outflows</td><td>MD, Accountant, BD</td></tr>
     <tr><td>Incident Trend Chart</td><td>Rolling 12-month incident count by type</td><td>MD, HSE Staff, HR Director</td></tr>
-    <tr><td>Incident Severity Chart</td><td>Pie breakdown of incidents by severity</td><td>MD, HSE Staff, HR Director</td></tr>
+    <tr><td>Incident Severity Chart</td><td>Pie breakdown of incidents by severity level</td><td>MD, HSE Staff, HR Director</td></tr>
+    <tr><td>Incident Type Pie Chart</td><td>Pie chart showing count per incident type (near miss, LTI, fatality, etc.)</td><td>MD, HSE Staff, HR Director</td></tr>
     <tr><td>HAZID KPI Overview</td><td>Total hazards, open/controlled/critical counts</td><td>MD, HSE Staff</td></tr>
     <tr><td>HAZOP KPI Overview</td><td>Studies, open nodes, risk distribution</td><td>MD, HSE Staff</td></tr>
     <tr><td>PTW KPI Overview</td><td>Active permits, overdue, compliance rate</td><td>MD, HSE Staff</td></tr>
     <tr><td>Open CAPA Actions</td><td>List of overdue and upcoming CAPA actions</td><td>MD, HSE Staff</td></tr>
     <tr><td>High-Risk Hazards</td><td>Hazards with residual risk score ≥ 13</td><td>MD, HSE Staff</td></tr>
+    <tr><td>Risk Distribution Chart</td><td>Bar chart comparing initial vs residual risk count per level (Low/Medium/High/Critical)</td><td>MD, HSE Staff</td></tr>
+    <tr><td>Risk Trend Chart</td><td>12-month line chart of open High/Critical hazards before and after controls</td><td>MD, HSE Staff</td></tr>
+    <tr><td>Risk Matrix Heatmap</td><td>Full 5×5 Likelihood × Severity heatmap showing hazard counts per cell (initial and residual)</td><td>MD, HSE Staff</td></tr>
     <tr><td>EMS KPI Overview</td><td>Environmental aspects, permits expiring, monitoring due</td><td>MD, HSE Staff, BD</td></tr>
+    <tr><td>EMS KPI Bar Chart</td><td>Bar chart of 5 EMS indicators: Compliance Rate, Waste Diversion, Audit Completion, CAPA Closure, EMI %</td><td>MD, HSE Staff, BD</td></tr>
+    <tr><td>EMS Waste Type Chart</td><td>Doughnut chart of waste volume grouped by waste type for current year</td><td>MD, HSE Staff, BD</td></tr>
     <tr><td>ESG KPI Overview</td><td>Open grievances, targets on-track, engagement count</td><td>MD, ESG Officer, BD</td></tr>
+    <tr><td>ESG Radar Chart</td><td>Radar chart showing E, S, and G sub-scores across 5 KPI dimensions each</td><td>MD, ESG Officer, BD</td></tr>
+    <tr><td>ESG Score Gauge</td><td>Semi-circle gauge showing the current overall ESG Maturity Index (0–100)</td><td>MD, ESG Officer, BD</td></tr>
+    <tr><td>ESG Period Bar Chart</td><td>Grouped bar + line chart of E/S/G scores and ESG-MI across historical assessment periods</td><td>MD, ESG Officer, BD</td></tr>
     <tr><td>EIA/ESIA Overview</td><td>Active ESIA projects by step/status</td><td>MD, HSE Staff, BD</td></tr>
     <tr><td>Open Audit Findings</td><td>Unresolved findings from internal audits</td><td>MD, HSE Staff, BD</td></tr>
     <tr><td>Expiring Documents</td><td>Corporate documents expiring in next 30 days</td><td>Document managers</td></tr>
@@ -219,8 +228,8 @@
     <li><strong>Search bar</strong> — full-text search across key fields</li>
     <li><strong>Filter</strong> icon — apply date ranges, status filters, category filters</li>
     <li><strong>Columns</strong> icon — toggle which columns are visible</li>
-    <li><strong>Export</strong> (where available) — download CSV or PDF</li>
-    <li><strong>Row actions</strong> — click the ⋮ menu on any row to Edit, View, Delete, or export a PDF</li>
+    <li><strong>Export</strong> (where available) — download CSV, PDF, or DOCX</li>
+    <li><strong>Row actions</strong> — click the ⋮ menu on any row to Edit, View, Delete, or export a PDF / DOCX report</li>
   </ul>
 
   <h3>Common Actions on Every Edit/Create Page</h3>
@@ -399,7 +408,7 @@
     <div class="step"><div class="step-num">2</div><div class="step-body">Set <strong>Investigation Status</strong> to <em>Completed</em>.</div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">Attach any supporting evidence (photos, witness statements) via the file upload.</div></div>
     <div class="step"><div class="step-num">4</div><div class="step-body">The HSE Manager or MD reviews and closes the incident.</div></div>
-    <div class="step"><div class="step-num">5</div><div class="step-body">To download the incident report as PDF, click the <strong>PDF Report</strong> row action from the list page.</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body">To download the incident report, click the <strong>PDF</strong> row action for a formatted PDF, or <strong>DOCX</strong> to get an editable Word document.</div></div>
   </div>
 
   <div class="info">The <strong>Investigation tab</strong> on the edit page gives access to linked sub-investigations for complex multi-factor incidents.</div>
@@ -487,7 +496,7 @@
     <div class="step"><div class="step-num">1</div><div class="step-body">Set study status to <em>Under Review</em> and assign a <strong>Reviewer</strong> with a <strong>Review Date</strong>.</div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">Reviewer opens the study, checks all nodes, and adds review notes.</div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">Assign <strong>Approved By</strong> (MD or HSE Manager) with <strong>Approval Date</strong> and <strong>Comments</strong>. Status moves to <em>Approved</em>.</div></div>
-    <div class="step"><div class="step-num">4</div><div class="step-body">Download the HAZOP Study report as PDF via the row action <strong>Study PDF</strong>.</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">Download the HAZOP Study report via the row actions: <strong>Study Report (PDF)</strong> for a formatted PDF, or <strong>DOCX</strong> for an editable Word document. The <strong>HAZOP Procedure</strong> button (header) downloads the ISO-aligned procedure in PDF or DOCX.</div></div>
   </div>
 </div>
 
@@ -537,7 +546,7 @@
   <div class="info">The Dashboard widget <strong>High-Risk Hazards</strong> always shows hazards with a residual risk score ≥ 13 so they are never forgotten.</div>
 
   <h4>Exporting HIRA Report</h4>
-  <p>From the list page, click the ⋮ menu on a hazard row and select <strong>HIRA PDF Report</strong> to download a formatted risk assessment document.</p>
+  <p>From the list page, click the ⋮ menu on a hazard row and select <strong>PDF</strong> to download the formatted report, or <strong>DOCX</strong> to get an editable Word version of the risk assessment.</p>
 </div>
 
 <!-- ═══════════════════ MODULE 6: PTW ═══════════════════ -->
@@ -610,7 +619,7 @@
     <div class="step"><div class="step-num">1</div><div class="step-body">Once work is complete, open the permit and fill in <strong>Closeout Notes</strong> and <strong>Final Inspection Notes</strong>.</div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">Set <strong>Completion Date</strong>, <strong>Closed By</strong>, and confirm with <strong>Completion Confirmed By</strong>.</div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">Status changes to <em>Closed</em>. The permit is now archived.</div></div>
-    <div class="step"><div class="step-num">4</div><div class="step-body">Download the permit PDF via the <strong>PTW Permit PDF</strong> row action for physical records.</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">Download the permit via the <strong>PDF</strong> row action for physical records, or <strong>DOCX</strong> for an editable Word version.</div></div>
   </div>
 
   <div class="danger"><strong>Critical:</strong> A permit expires at its <strong>Valid To</strong> time. If work is not completed, a new permit must be requested. Never extend a permit verbally.</div>
@@ -641,6 +650,7 @@
     <div class="step"><div class="step-num">4</div><div class="step-body">Rate <strong>Likelihood</strong> and <strong>Severity</strong> (1–5 each). The <strong>Significance Score</strong> = L × S calculates automatically.</div></div>
     <div class="step"><div class="step-num">5</div><div class="step-body">Enter <strong>Existing Controls</strong> and <strong>Proposed Controls</strong>. Assign a <strong>Responsible Person</strong> and <strong>Target Completion Date</strong>.</div></div>
     <div class="step"><div class="step-num">6</div><div class="step-body">Set <strong>Status</strong>: Open, In Progress, or Controlled.</div></div>
+    <div class="step"><div class="step-num">7</div><div class="step-body">To export the aspect assessment, use the <strong>PDF</strong> or <strong>DOCX</strong> row action from the Aspects &amp; Impacts list page.</div></div>
   </div>
 
   <h3>7.2 Legal &amp; Compliance Register</h3>
@@ -733,6 +743,9 @@
     <li>Update <strong>Current Value</strong> at each reporting period</li>
     <li>The Dashboard <strong>ESG Targets Progress</strong> widget shows a progress bar for each target</li>
   </ul>
+
+  <h3>8.7 ESG Summary Report</h3>
+  <p>The ESG Targets list page has header buttons to export a consolidated ESG Summary report covering all targets, open grievances, active governance policies, and social indicators. Choose <strong>Export ESG Summary PDF</strong> or <strong>Export ESG Summary DOCX</strong>.</p>
 </div>
 
 <!-- ═══════════════════ MODULE 9: EIA/ESIA ═══════════════════ -->
@@ -788,8 +801,8 @@
     <li>System calculates <strong>Significance Rating</strong> automatically</li>
   </ul>
 
-  <h3>Generating the ESIA Report PDF</h3>
-  <p>From the <strong>ESIA Reports</strong> list, click the ⋮ action on a report and select <strong>Export ESIA PDF</strong>. The PDF includes all data from Steps 1–12 for the linked ESIA project.</p>
+  <h3>Generating the ESIA Report</h3>
+  <p>From the <strong>ESIA Reports</strong> list, click the ⋮ action on a report and select <strong>PDF</strong> to download the formatted ESIA report, or <strong>DOCX</strong> to get an editable Word version. Both outputs include all data from Steps 1–12 for the linked ESIA project.</p>
 </div>
 
 <!-- ═══════════════════ MODULE 10: ENV AUDIT ═══════════════════ -->
@@ -853,7 +866,7 @@
   <div class="steps">
     <div class="step"><div class="step-num">1</div><div class="step-body">Enter <strong>Management Summary</strong> and <strong>Closing Notes</strong> in the Summary section.</div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">Set <strong>Approved By</strong> and <strong>Approval Date</strong>. Status moves to <em>Completed</em>.</div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body">Download the full audit report via the <strong>Environmental Audit PDF</strong> row action.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Download the full audit report via the <strong>PDF</strong> row action, or use <strong>DOCX</strong> to download an editable Word version. The same export buttons appear on the audit Edit page header.</div></div>
   </div>
 </div>
 
@@ -920,8 +933,8 @@
   <h3>Lead Auditor Approval</h3>
   <p>In the <strong>Lead Auditor Approval</strong> section on the main audit form, the Lead Auditor sets <strong>Approved By</strong>, <strong>Approval Date</strong>, and the audit moves to status <em>Completed</em>.</p>
 
-  <h3>AMS Audit Report PDF</h3>
-  <p>Click the <strong>AMS Report PDF</strong> row action to download a comprehensive audit report including: Audit Scorecard, Full Checklist, NC Register with RCA, CAPA Register, and Signatures page.</p>
+  <h3>AMS Audit Report Export</h3>
+  <p>From the row actions, click <strong>PDF</strong> for the standard audit report or <strong>DOCX</strong> for an editable Word version. Click <strong>AMS Report</strong> (PDF) or <strong>AMS DOCX</strong> for the comprehensive AMS report that includes: Audit Scorecard, Full Checklist, NC Register with RCA, CAPA Register, and Signatures page.</p>
 </div>
 
 <!-- ═══════════════════ MODULE 12: TRAINING ═══════════════════ -->
@@ -1031,6 +1044,7 @@
     <tr><th>Action</th><th>What it does</th></tr>
     <tr><td><strong>Mark Paid</strong></td><td>Sets status to Paid and fills amount paid = total (one-click settlement)</td></tr>
     <tr><td><strong>PDF</strong></td><td>Downloads a professionally formatted PDF invoice including your company address, TIN, bank details, client TIN, line items, totals, and payment instructions</td></tr>
+    <tr><td><strong>DOCX</strong></td><td>Downloads the same invoice as an editable Microsoft Word (.docx) document — useful for making manual adjustments before printing</td></tr>
     <tr><td><strong>Email</strong></td><td>Opens a modal pre-filled with the client's email, subject, and a default message body. Clicking Send emails the invoice with the PDF attached automatically</td></tr>
     <tr><td><strong>WhatsApp</strong></td><td>Opens WhatsApp (web or app) with a pre-filled invoice summary message sent to the client's phone number. Only visible if the client has a phone number on record</td></tr>
   </table>
@@ -1300,7 +1314,7 @@
 
 <!-- ═══════════════════ FOOTER ═══════════════════ -->
 <div style="background:#0f172a;color:#94a3b8;padding:24px 60px;font-size:8.5pt;display:flex;justify-content:space-between;align-items:center">
-  <span>PortalHSE Training Manual · Version 2.1 · June 2026</span>
+  <span>PortalHSE Training Manual · Version 2.2 · June 2026</span>
   <span>Confidential — Internal Use Only · © {{ date('Y') }} PortalHSE</span>
 </div>
 
