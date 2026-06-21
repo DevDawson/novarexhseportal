@@ -3,9 +3,14 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\EmsContinualImprovementWidget;
+use App\Filament\Widgets\EmsKpiBarChartWidget;
 use App\Filament\Widgets\EmsKpiOverview;
 use App\Filament\Widgets\EmsMaturityIndexWidget;
+use App\Filament\Widgets\EmsWasteTypePieChartWidget;
 use App\Filament\Widgets\EsgMaturityIndexWidget;
+use App\Filament\Widgets\EsgPeriodBarChartWidget;
+use App\Filament\Widgets\EsgRadarChartWidget;
+use App\Filament\Widgets\EsgScoreGaugeWidget;
 use App\Filament\Widgets\AuditManagementKpiWidget;
 use App\Filament\Widgets\EnvironmentalAuditKpiWidget;
 use App\Filament\Widgets\EsiaOverviewWidget;
@@ -22,11 +27,15 @@ use App\Filament\Widgets\HighRiskHazardsWidget;
 use App\Filament\Widgets\HseKpiOverview;
 use App\Filament\Widgets\IncidentSeverityChart;
 use App\Filament\Widgets\IncidentTrendChart;
+use App\Filament\Widgets\IncidentTypePieChartWidget;
 use App\Filament\Widgets\OpenAuditFindingsWidget;
 use App\Filament\Widgets\OpenCorrectiveActionsWidget;
 use App\Filament\Widgets\OpenGrievancesWidget;
 use App\Filament\Widgets\ProjectSafetyPerformanceWidget;
 use App\Filament\Widgets\RevenueVsExpensesChart;
+use App\Filament\Widgets\RiskDistributionBarChartWidget;
+use App\Filament\Widgets\RiskMatrixWidget;
+use App\Filament\Widgets\RiskTrendLineChartWidget;
 use App\Filament\Widgets\StatsOverview;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -118,6 +127,7 @@ class AdminPanelProvider extends PanelProvider
 
                 // 4. Incident breakdown charts (MD, HSE Staff, HR Director)
                 IncidentSeverityChart::class,
+                IncidentTypePieChartWidget::class,
                 IncidentTrendChart::class,
 
                 // 5. Corrective actions & safety performance (MD, HSE Staff)
@@ -130,8 +140,11 @@ class AdminPanelProvider extends PanelProvider
                 // 7. Permit to Work - expiring/overdue permits (MD, HSE Staff)
                 ExpiringPermitsWidget::class,
 
-                // 8. HIRA - high/critical residual hazards (MD, HSE Staff)
+                // 8. HIRA - high/critical residual hazards + risk charts
                 HighRiskHazardsWidget::class,
+                RiskDistributionBarChartWidget::class,
+                RiskTrendLineChartWidget::class,
+                RiskMatrixWidget::class,
 
                 // 8b. HAZID KPI overview — 10 headline metrics (MD, HSE Staff)
                 HazidKpiWidget::class,
@@ -154,8 +167,10 @@ class AdminPanelProvider extends PanelProvider
                 // 10c. EMS Continual Improvement KPIs 15.1–15.4
                 EmsContinualImprovementWidget::class,
 
-                // 11. EMS environmental metrics trend chart (MD, HSE Staff, Business Director)
+                // 11. EMS charts — bar KPIs, trend line, waste pie
+                EmsKpiBarChartWidget::class,
                 EnvironmentalMetricsTrendChart::class,
+                EmsWasteTypePieChartWidget::class,
 
                 // 12. EMS expiring licences/permits (MD, HSE Staff)
                 ExpiringLicensesWidget::class,
@@ -166,7 +181,10 @@ class AdminPanelProvider extends PanelProvider
                 // 13b. ESG Maturity Index — composite E/S/G score (MD, ESG Officer, Business Director)
                 EsgMaturityIndexWidget::class,
 
-                // 14. ESG targets progress table (MD, ESG Officer, Business Director)
+                // 14. ESG charts — radar, gauge, period bar, targets table
+                EsgRadarChartWidget::class,
+                EsgScoreGaugeWidget::class,
+                EsgPeriodBarChartWidget::class,
                 EsgTargetsProgressWidget::class,
 
                 // 15. Open grievances (MD, ESG Officer)
