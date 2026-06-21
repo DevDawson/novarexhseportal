@@ -20,6 +20,19 @@ class JhaKpiWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        try {
+            return $this->buildStats();
+        } catch (\Throwable $e) {
+            return [
+                Stat::make('JHA KPIs', '—')
+                    ->description('Pending: php artisan migrate --force on production')
+                    ->color('gray'),
+            ];
+        }
+    }
+
+    private function buildStats(): array
+    {
         $total       = JhaAnalysis::count();
         $authorized  = JhaAnalysis::where('status', 'authorized')->count();
         $pending     = JhaAnalysis::whereIn('status', ['submitted', 'supervisor_approved', 'hse_approved', 'pm_approved'])->count();

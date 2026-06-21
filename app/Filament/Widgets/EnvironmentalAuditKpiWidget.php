@@ -29,6 +29,19 @@ class EnvironmentalAuditKpiWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        try {
+            return $this->buildStats();
+        } catch (\Throwable $e) {
+            return [
+                Stat::make('Environmental Audit KPIs', '—')
+                    ->description('Pending: php artisan migrate --force on production')
+                    ->color('gray'),
+            ];
+        }
+    }
+
+    private function buildStats(): array
+    {
         $thisYear = now()->year;
 
         $totalAudits = EnvironmentalAudit::whereYear('audit_date', $thisYear)->count();
@@ -68,10 +81,10 @@ class EnvironmentalAuditKpiWidget extends BaseWidget
         $wasteDiversionRate = $totalWaste > 0 ? round(($recycledWaste / $totalWaste) * 100, 1) : 0;
 
         // ── KPI 6: Water Reduction Rate ──────────────────────────────
-        $currentWater  = (float) EnvironmentalMonitoringRecord::where('parameter_name', 'water_consumption')
-                          ->whereYear('measurement_date', $thisYear)->sum('value');
-        $baselineWater = (float) EnvironmentalMonitoringRecord::where('parameter_name', 'water_consumption')
-                          ->whereYear('measurement_date', $thisYear - 1)->sum('value');
+        $currentWater  = (float) EnvironmentalMonitoringRecord::where('metric_type', 'like', '%water%')
+                          ->whereYear('record_date', $thisYear)->sum('value');
+        $baselineWater = (float) EnvironmentalMonitoringRecord::where('metric_type', 'like', '%water%')
+                          ->whereYear('record_date', $thisYear - 1)->sum('value');
         $waterReductionRate = $baselineWater > 0
             ? round((($baselineWater - $currentWater) / $baselineWater) * 100, 1) : 0;
 
@@ -164,3 +177,4 @@ class EnvironmentalAuditKpiWidget extends BaseWidget
         ];
     }
 }
+

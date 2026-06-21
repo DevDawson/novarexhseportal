@@ -2,7 +2,6 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\EsgMaturityAssessment;
 use App\Services\EsgMaturityService;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -23,6 +22,19 @@ class EsgMaturityIndexWidget extends BaseWidget
     }
 
     protected function getStats(): array
+    {
+        try {
+            return $this->buildStats();
+        } catch (\Throwable $e) {
+            return [
+                Stat::make('ESG Maturity Index', '—')
+                    ->description('Pending: php artisan migrate --force on production')
+                    ->color('gray'),
+            ];
+        }
+    }
+
+    private function buildStats(): array
     {
         $data      = EsgMaturityService::latestOrLive();
         $composite = $data['composite'];

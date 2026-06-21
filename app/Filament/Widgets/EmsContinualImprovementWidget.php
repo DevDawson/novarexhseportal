@@ -24,6 +24,19 @@ class EmsContinualImprovementWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        try {
+            return $this->buildStats();
+        } catch (\Throwable $e) {
+            return [
+                Stat::make('EMS Continual Improvement', '—')
+                    ->description('Pending: php artisan migrate --force on production')
+                    ->color('gray'),
+            ];
+        }
+    }
+
+    private function buildStats(): array
+    {
         // ── KPI 15.1: Environmental Objective Achievement Rate ────────
         $kpi151 = EmsMaturityService::kpi151();
 
