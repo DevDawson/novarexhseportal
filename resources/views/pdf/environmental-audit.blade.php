@@ -38,6 +38,10 @@
   .score-good      { border-color:#3182ce; background:#ebf8ff; }
   .score-fair      { border-color:#d69e2e; background:#fffff0; }
   .score-poor      { border-color:#e53e3e; background:#fff5f5; }
+  .score-critical  { border-color:#742a2a; background:#fff5f5; }
+  .sig-table td { padding:6px 10px; border:1px solid #e2e8f0; width:25%; vertical-align:top; }
+  .sig-table th { background:#2d3748; color:#fff; padding:5px 10px; text-align:left; }
+  .sig-blank { border-bottom:1px solid #4a5568; margin-top:24px; margin-bottom:3px; width:85%; }
   .score-number { font-size:26px; font-weight:700; }
   .score-label  { font-size:11px; font-weight:600; margin-top:2px; }
 
@@ -100,13 +104,16 @@
     'excellent' => 'score-excellent',
     'good'      => 'score-good',
     'fair'      => 'score-fair',
+    'poor'      => 'score-poor',
+    'critical'  => 'score-critical',
     default     => 'score-poor',
   };
   $ratingLabel = match($audit->rating) {
     'excellent' => 'EXCELLENT — Fully Compliant System (90–100%)',
-    'good'      => 'GOOD — Minor Gaps, No Major Risk (75–89%)',
-    'fair'      => 'FAIR — Significant Improvements Required (50–74%)',
-    'poor'      => 'POOR — Major Non-Compliance, Urgent Action Required (<50%)',
+    'good'      => 'GOOD — Minor Gaps, No Major Risk (80–89%)',
+    'fair'      => 'FAIR — Significant Improvements Required (70–79%)',
+    'poor'      => 'POOR — Major Non-Compliance, Urgent Action Required (50–69%)',
+    'critical'  => 'CRITICAL — Severe Non-Compliance, Immediate Action Required (<50%)',
     default     => 'Not Assessed',
   };
 @endphp
@@ -267,48 +274,165 @@
 </table>
 @endif
 
+{{-- ── RISK SUMMARY (Step 16) ───────────────────────────────────────── --}}
+@if($findings->count() > 0)
+<h2>RISK SUMMARY</h2>
+@php
+  $critical = $findings->where('risk_level', 'critical')->count();
+  $high     = $findings->where('risk_level', 'high')->count();
+  $medium   = $findings->where('risk_level', 'medium')->count();
+  $low      = $findings->where('risk_level', 'low')->count();
+@endphp
+<div class="stat-row">
+  <div class="stat-cell"><div class="num" style="color:#742a2a">{{ $critical }}</div><div class="lbl">Critical Risk</div></div>
+  <div class="stat-cell"><div class="num" style="color:#e53e3e">{{ $high }}</div><div class="lbl">High Risk</div></div>
+  <div class="stat-cell"><div class="num" style="color:#d69e2e">{{ $medium }}</div><div class="lbl">Medium Risk</div></div>
+  <div class="stat-cell"><div class="num" style="color:#38a169">{{ $low }}</div><div class="lbl">Low Risk</div></div>
+  <div class="stat-cell"><div class="num">{{ $findings->count() }}</div><div class="lbl">Total Findings</div></div>
+</div>
+
+@if($majorNCs > 0)
+<h3>Major Non-Conformances Requiring Immediate Action</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:8%">No.</th>
+      <th style="width:50%">Description</th>
+      <th style="width:20%">Action Owner</th>
+      <th style="width:12%">Due Date</th>
+      <th style="width:10%">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach($findings->where('finding_type', 'major_nc') as $f)
+    <tr>
+      <td><strong>{{ $f->finding_number }}</strong></td>
+      <td>{{ $f->description }}</td>
+      <td>{{ $f->action_owner ?? '—' }}</td>
+      <td>{{ $f->target_completion_date?->format('d M Y') ?? '—' }}</td>
+      <td><span class="badge {{ $statusColors2[$f->action_status] ?? 'b-gray' }}">{{ $statusLabels2[$f->action_status] ?? $f->action_status }}</span></td>
+    </tr>
+    @endforeach
+  </tbody>
+</table>
+@endif
+@endif
+
 {{-- ── MANAGEMENT SUMMARY ───────────────────────────────────────────── --}}
 @if($audit->management_summary || $audit->closing_notes)
-<h2>MANAGEMENT SUMMARY & CLOSING NOTES</h2>
+<h2>MANAGEMENT SUMMARY & EXECUTIVE NOTES</h2>
 @if($audit->management_summary)
   <h3>Management Summary</h3>
   <div class="section-text">{{ $audit->management_summary }}</div>
 @endif
 @if($audit->closing_notes)
-  <h3>Auditor Conclusion / Closing Notes</h3>
+  <h3>Auditor Conclusion / Recommendations</h3>
   <div class="section-text">{{ $audit->closing_notes }}</div>
 @endif
 @endif
 
-{{-- ── SIGNATURE BLOCK ──────────────────────────────────────────────── --}}
-<div style="margin-top:20px; border:1px solid #e2e8f0;">
-  <table>
+{{-- ── RECOMMENDATIONS (Step 16) ───────────────────────────────────── --}}
+@if($findings->whereNotNull('recommended_action')->count() > 0)
+<h2>RECOMMENDATIONS (Step 16)</h2>
+<table>
+  <thead>
     <tr>
+      <th style="width:8%">Finding</th>
+      <th style="width:12%">Type</th>
+      <th style="width:80%">Recommended Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach($findings->whereNotNull('recommended_action') as $f)
+    <tr>
+      <td><strong>{{ $f->finding_number }}</strong></td>
+      <td><span class="badge {{ $typeColors[$f->finding_type] ?? 'b-gray' }}">{{ $typeLabels[$f->finding_type] ?? $f->finding_type }}</span></td>
+      <td>{{ $f->recommended_action }}</td>
+    </tr>
+    @endforeach
+  </tbody>
+</table>
+@endif
+
+{{-- ── APPROVAL TRAIL (Step 17) ─────────────────────────────────────── --}}
+<div class="page-break"></div>
+<h2>MANAGEMENT APPROVAL TRAIL (Step 17)</h2>
+@php
+  $approvalLogs = $audit->approvalLogs ?? collect();
+@endphp
+
+@if($approvalLogs->count() > 0)
+<table>
+  <thead>
+    <tr>
+      <th style="width:22%">Stage</th>
+      <th style="width:18%">Signed By</th>
+      <th style="width:12%">Action</th>
+      <th style="width:14%">Date &amp; Time</th>
+      <th style="width:34%">Comments</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach($approvalLogs as $log)
+    <tr>
+      <td><strong>{{ \App\Models\EnvAuditApprovalLog::$stageLabels[$log->stage] ?? $log->stage }}</strong></td>
+      <td>{{ $log->signature_text }}</td>
+      <td>
+        <span class="badge {{ $log->action === 'approved' ? 'b-success' : 'b-danger' }}">
+          {{ ucfirst($log->action) }}
+        </span>
+      </td>
+      <td>{{ $log->signed_at?->format('d M Y H:i') }}</td>
+      <td>{{ $log->comments ?? '—' }}</td>
+    </tr>
+    @endforeach
+  </tbody>
+</table>
+@else
+<div class="section-text" style="color:#718096;font-style:italic;">No approval actions recorded yet. Submit the audit to begin the Step 17 approval workflow.</div>
+@endif
+
+{{-- Multi-stage signature block ───────────────────────────────────── --}}
+<div style="margin-top:16px;">
+  <table class="sig-table">
+    <tr>
+      <th>Auditor (Prepared)</th>
       <th>Lead Auditor</th>
-      <th>Team Leader</th>
-      <th>Approved By</th>
-      <th>Auditee Representative</th>
+      <th>Project Manager</th>
+      <th>Client Representative</th>
     </tr>
-    <tr style="height:40px;">
-      <td>{{ $audit->leadAuditor->name ?? '________________________' }}</td>
-      <td>{{ $audit->teamLeader->name ?? '________________________' }}</td>
-      <td>{{ $audit->approvedBy->name ?? '________________________' }}</td>
-      <td>{{ $audit->auditee_representatives ? \Str::before($audit->auditee_representatives, "\n") : '________________________' }}</td>
-    </tr>
-    <tr>
-      <td>Signature: _______________</td>
-      <td>Signature: _______________</td>
-      <td>Signature: _______________</td>
-      <td>Signature: _______________</td>
-    </tr>
-    <tr>
-      <td>Date: ____________________</td>
-      <td>Date: ____________________</td>
-      <td>Date: ____________________</td>
-      <td>Date: ____________________</td>
+    <tr style="height:50px; vertical-align:bottom;">
+      <td>
+        <div class="sig-blank"></div>
+        <div>{{ $audit->leadAuditor->name ?? '_______________________' }}</div>
+        <div style="font-size:7.5px;color:#718096;">{{ $audit->lead_auditor_signed_at?->format('d M Y') ?? 'Date: ______________' }}</div>
+      </td>
+      <td>
+        <div class="sig-blank"></div>
+        <div>{{ $audit->leadAuditorSigner->name ?? '_______________________' }}</div>
+        <div style="font-size:7.5px;color:#718096;">{{ $audit->lead_auditor_signed_at?->format('d M Y') ?? 'Date: ______________' }}</div>
+      </td>
+      <td>
+        <div class="sig-blank"></div>
+        <div>{{ $audit->pmApprover->name ?? '_______________________' }}</div>
+        <div style="font-size:7.5px;color:#718096;">{{ $audit->pm_approved_at?->format('d M Y') ?? 'Date: ______________' }}</div>
+      </td>
+      <td>
+        <div class="sig-blank"></div>
+        <div>{{ $audit->clientApprover->name ?? '_______________________' }}</div>
+        <div style="font-size:7.5px;color:#718096;">{{ $audit->client_approved_at?->format('d M Y') ?? 'Date: ______________' }}</div>
+      </td>
     </tr>
   </table>
 </div>
+
+@if($audit->final_approved_at)
+<div style="margin-top:10px; padding:8px 12px; background:#f0fff4; border:1px solid #38a169; font-size:8.5px;">
+  <strong style="color:#276749;">FINALLY APPROVED</strong> by {{ $audit->finalApprover->name ?? '—' }}
+  on {{ $audit->final_approved_at->format('d M Y H:i') }}
+  @if($audit->final_comments) — {{ $audit->final_comments }} @endif
+</div>
+@endif
 
 <div class="footer">
   Generated: {{ now()->format('d M Y H:i') }} |

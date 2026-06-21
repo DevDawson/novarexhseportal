@@ -53,4 +53,7 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
 
     Route::get('/invoice/{invoice}',       [PdfExportController::class, 'invoicePdf'])
         ->name('invoice');
+
+    Route::get('/maturity/{assessment}',   [PdfExportController::class, 'maturityScorecard'])
+        ->name('maturity');
 });

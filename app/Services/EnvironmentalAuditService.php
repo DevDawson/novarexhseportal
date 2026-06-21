@@ -116,9 +116,10 @@ class EnvironmentalAuditService
     {
         return match (true) {
             $score >= 90 => 'excellent',
-            $score >= 75 => 'good',
-            $score >= 50 => 'fair',
-            default      => 'poor',
+            $score >= 80 => 'good',
+            $score >= 70 => 'fair',
+            $score >= 50 => 'poor',
+            default      => 'critical',
         };
     }
 
@@ -126,9 +127,10 @@ class EnvironmentalAuditService
     {
         return match ($rating) {
             'excellent' => 'Excellent (90–100%)',
-            'good'      => 'Good (75–89%)',
-            'fair'      => 'Fair (50–74%)',
-            'poor'      => 'Poor (<50%)',
+            'good'      => 'Good (80–89%)',
+            'fair'      => 'Fair (70–79%)',
+            'poor'      => 'Poor (50–69%)',
+            'critical'  => 'Critical (<50%)',
             default     => ucfirst($rating),
         };
     }
@@ -140,6 +142,7 @@ class EnvironmentalAuditService
             'good'      => 'info',
             'fair'      => 'warning',
             'poor'      => 'danger',
+            'critical'  => 'danger',
             default     => 'gray',
         };
     }

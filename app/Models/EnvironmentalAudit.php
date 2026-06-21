@@ -26,14 +26,44 @@ class EnvironmentalAudit extends Model
         'compliance_score', 'rating',
         'management_summary', 'closing_notes',
         'approved_by', 'approved_at',
+        // Step 17 multi-stage approval workflow
+        'lead_auditor_signed_by', 'lead_auditor_signed_at', 'lead_auditor_comments',
+        'pm_approved_by', 'pm_approved_at', 'pm_comments',
+        'client_approved_by', 'client_approved_at', 'client_comments',
+        'final_approved_by', 'final_approved_at', 'final_comments',
+        'approval_status', 'rejection_reason',
+        'total_operating_hours', 'planned_audits_count',
     ];
 
     protected $casts = [
-        'audit_date'         => 'date',
-        'planned_start_date' => 'date',
-        'planned_end_date'   => 'date',
-        'approved_at'        => 'datetime',
-        'compliance_score'   => 'decimal:2',
+        'audit_date'              => 'date',
+        'planned_start_date'      => 'date',
+        'planned_end_date'        => 'date',
+        'approved_at'             => 'datetime',
+        'lead_auditor_signed_at'  => 'datetime',
+        'pm_approved_at'          => 'datetime',
+        'client_approved_at'      => 'datetime',
+        'final_approved_at'       => 'datetime',
+        'compliance_score'        => 'decimal:2',
+        'total_operating_hours'   => 'decimal:2',
+    ];
+
+    public const APPROVAL_STATUS_LABELS = [
+        'draft'                 => 'Draft',
+        'submitted'             => 'Submitted',
+        'lead_auditor_signed'   => 'Lead Auditor Signed',
+        'pm_approved'           => 'PM Approved',
+        'client_approved'       => 'Client Approved',
+        'final_approved'        => 'Final Approved',
+        'rejected'              => 'Rejected',
+    ];
+
+    public const RATING_COLORS_UPDATED = [
+        'excellent' => 'success',
+        'good'      => 'info',
+        'fair'      => 'warning',
+        'poor'      => 'danger',
+        'critical'  => 'danger',
     ];
 
     public const AUDIT_TYPE_LABELS = [
@@ -154,4 +184,11 @@ class EnvironmentalAudit extends Model
         return $this->hasMany(EnvironmentalAuditFinding::class, 'audit_id')
                     ->orderBy('finding_number');
     }
+
+    // Step 17 approval relationships
+    public function leadAuditorSigner(): BelongsTo  { return $this->belongsTo(User::class, 'lead_auditor_signed_by'); }
+    public function pmApprover(): BelongsTo          { return $this->belongsTo(User::class, 'pm_approved_by'); }
+    public function clientApprover(): BelongsTo      { return $this->belongsTo(User::class, 'client_approved_by'); }
+    public function finalApprover(): BelongsTo       { return $this->belongsTo(User::class, 'final_approved_by'); }
+    public function approvalLogs(): HasMany          { return $this->hasMany(EnvAuditApprovalLog::class, 'audit_id')->orderBy('signed_at'); }
 }

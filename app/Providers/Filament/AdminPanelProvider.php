@@ -2,7 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\EmsContinualImprovementWidget;
 use App\Filament\Widgets\EmsKpiOverview;
+use App\Filament\Widgets\EmsMaturityIndexWidget;
+use App\Filament\Widgets\EsgMaturityIndexWidget;
 use App\Filament\Widgets\AuditManagementKpiWidget;
 use App\Filament\Widgets\EnvironmentalAuditKpiWidget;
 use App\Filament\Widgets\EsiaOverviewWidget;
@@ -70,6 +73,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('EIA / ESIA'),
                 NavigationGroup::make('Environmental Audit'),
                 NavigationGroup::make('Audit Management System'),
+                NavigationGroup::make('Job Hazard Analysis (JHA)'),
             ])
 
             // Auto-discover Resources and Pages (fine).
@@ -144,6 +148,12 @@ class AdminPanelProvider extends PanelProvider
                 // 10. EMS KPI stats (MD, HSE Staff, Business Director)
                 EmsKpiOverview::class,
 
+                // 10b. EMS Maturity Index — EMI formula widget (MD, HSE Staff, Business Director)
+                EmsMaturityIndexWidget::class,
+
+                // 10c. EMS Continual Improvement KPIs 15.1–15.4
+                EmsContinualImprovementWidget::class,
+
                 // 11. EMS environmental metrics trend chart (MD, HSE Staff, Business Director)
                 EnvironmentalMetricsTrendChart::class,
 
@@ -152,6 +162,9 @@ class AdminPanelProvider extends PanelProvider
 
                 // 13. ESG KPI stats (MD, ESG Officer, Business Director)
                 EsgKpiOverview::class,
+
+                // 13b. ESG Maturity Index — composite E/S/G score (MD, ESG Officer, Business Director)
+                EsgMaturityIndexWidget::class,
 
                 // 14. ESG targets progress table (MD, ESG Officer, Business Director)
                 EsgTargetsProgressWidget::class,
@@ -167,6 +180,9 @@ class AdminPanelProvider extends PanelProvider
 
                 // 18. Environmental Audit KPIs — ISO 14001 (MD, HSE Staff, Business Director)
                 EnvironmentalAuditKpiWidget::class,
+
+                // 19. JHA KPIs — Step 14 dashboard (MD, HSE Staff)
+                \App\Filament\Widgets\JhaKpiWidget::class,
             ])
 
             ->middleware([

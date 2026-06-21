@@ -13,8 +13,11 @@ use App\Models\EnvironmentalAudit;
 use App\Models\Invoice;
 use App\Models\PermitToWork;
 use App\Models\InternalAudit;
+use App\Models\MaturityAssessment;
+use App\Models\MaturityDimension;
 use App\Models\Setting;
 use App\Models\SocialIndicator;
+use App\Services\MaturityScoringService;
 use App\Services\HazopScoringService;
 use App\Services\RiskScoringService;
 use App\Models\EsiaBaselineData;
@@ -263,6 +266,9 @@ class PdfExportController extends Controller
             'project', 'department', 'teamLeader', 'leadAuditor', 'approvedBy',
             'checklistItems',
             'findings.closedBy',
+            // Step 17 approval workflow
+            'leadAuditorSigner', 'pmApprover', 'clientApprover', 'finalApprover',
+            'approvalLogs.user',
         ]);
 
         $pdf = Pdf::loadView('pdf.environmental-audit', compact('audit'))
@@ -298,6 +304,70 @@ class PdfExportController extends Controller
                   ->setPaper('a4', 'portrait');
 
         return $pdf->download("{$invoice->invoice_number}-" . now()->format('Ymd') . '.pdf');
+    }
+
+    // ----------------------------------------------------------------
+    // HSE Maturity Scorecard
+    // ----------------------------------------------------------------
+    public function maturityScorecard(MaturityAssessment $assessment): Response
+    {
+        abort_unless(
+            auth()->user()?->hasAnyRole(['md', 'hse_manager', 'hse_staff', 'lead_auditor', 'business_director']),
+            403
+        );
+
+        $assessment->load('project', 'assessedBy', 'scores.indicator.dimension');
+
+        $breakdown = MaturityScoringService::dimensionBreakdown($assessment);
+
+        // Build indicator detail grouped by dimension
+        $indicatorDetail = [];
+        foreach (MaturityDimension::with('indicators')->orderBy('sort_order')->get() as $dim) {
+            $indicators = [];
+            foreach ($dim->indicators as $ind) {
+                $score = $assessment->scores->firstWhere('indicator_id', $ind->id);
+                $indicators[] = [
+                    'name'     => $ind->name,
+                    'score'    => $score?->score ?? '—',
+                    'auto'     => $score?->auto_calculated ?? false,
+                    'evidence' => $score?->evidence,
+                ];
+            }
+            $indicatorDetail[$dim->code] = [
+                'name'       => $dim->name,
+                'indicators' => $indicators,
+            ];
+        }
+
+        // Trend: last 6 finalised assessments
+        $trend = MaturityAssessment::where('status', 'finalised')
+            ->orderByDesc('assessed_at')
+            ->take(6)
+            ->get()
+            ->reverse()
+            ->values()
+            ->map(fn ($a) => [
+                'period' => $a->period,
+                'score'  => $a->overall_score,
+                'level'  => $a->maturity_level,
+            ])
+            ->toArray();
+
+        $levelDescription = match (true) {
+            ($assessment->overall_score ?? 0) >= 4.3 => 'Optimizing — HSE practices are world-class, data-driven, and continuously improved.',
+            ($assessment->overall_score ?? 0) >= 3.5 => 'Proactive — HSE is systematically managed with predictive controls in place.',
+            ($assessment->overall_score ?? 0) >= 3.0 => 'Defined — Documented, standardised HSE processes exist and are consistently applied.',
+            ($assessment->overall_score ?? 0) >= 2.0 => 'Basic — Some HSE processes exist but are reactive and inconsistently applied.',
+            default                                   => 'Initial — HSE management is ad-hoc, reactive, and largely undocumented.',
+        };
+
+        $pdf = Pdf::loadView('pdf.maturity-scorecard', compact(
+            'assessment', 'breakdown', 'indicatorDetail', 'trend', 'levelDescription'
+        ))->setPaper('a4', 'portrait');
+
+        $filename = 'HSE-Maturity-Scorecard-' . $assessment->period . '-' . now()->format('Ymd') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     // ----------------------------------------------------------------

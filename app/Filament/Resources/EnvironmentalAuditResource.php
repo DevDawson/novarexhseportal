@@ -4,11 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\EnvironmentalAuditResource\Pages;
 use App\Filament\Resources\EnvironmentalAuditResource\RelationManagers;
+use App\Models\EnvAuditApprovalLog;
 use App\Models\EnvironmentalAudit;
 use App\Models\User;
 use App\Services\EnvironmentalAuditService;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -160,9 +162,10 @@ class EnvironmentalAuditResource extends Resource
                         ->label('Audit Rating')
                         ->options([
                             'excellent' => 'Excellent (90–100%)',
-                            'good'      => 'Good (75–89%)',
-                            'fair'      => 'Fair (50–74%)',
-                            'poor'      => 'Poor (<50%)',
+                            'good'      => 'Good (80–89%)',
+                            'fair'      => 'Fair (70–79%)',
+                            'poor'      => 'Poor (50–69%)',
+                            'critical'  => 'Critical (<50%)',
                         ])
                         ->native(false)
                         ->disabled(),
@@ -175,13 +178,65 @@ class EnvironmentalAuditResource extends Resource
                         ->label('Closing Notes / Auditor Conclusion')
                         ->rows(3)->columnSpanFull(),
 
+                    Forms\Components\TextInput::make('total_operating_hours')
+                        ->label('Total Operating Hours (for KPI 7)')
+                        ->numeric()
+                        ->helperText('Used to calculate Environmental Incident Rate (incidents per 100,000 hrs)')
+                        ->suffix('hrs'),
+
                     Forms\Components\Select::make('approved_by')
-                        ->label('Approved By')
+                        ->label('Initial Approval By')
                         ->relationship('approvedBy', 'name')
                         ->searchable()->preload(),
 
                     Forms\Components\DateTimePicker::make('approved_at')
-                        ->label('Approval Date / Time')->native(false),
+                        ->label('Initial Approval Date / Time')->native(false),
+                ]),
+
+            // ── 6. Approval Workflow Status (Step 17, read-only display) ──
+            Forms\Components\Section::make('6. Approval Workflow Status (Step 17)')
+                ->collapsed()
+                ->columns(4)
+                ->schema([
+                    Forms\Components\Placeholder::make('approval_status_display')
+                        ->label('Current Approval Status')
+                        ->content(fn ($record) => $record
+                            ? (EnvironmentalAudit::APPROVAL_STATUS_LABELS[$record->approval_status ?? 'draft'] ?? 'Draft')
+                            : 'Draft'
+                        ),
+
+                    Forms\Components\Placeholder::make('lead_auditor_signed_display')
+                        ->label('Lead Auditor Signed')
+                        ->content(fn ($record) => $record?->lead_auditor_signed_at
+                            ? ($record->leadAuditorSigner?->name . ' — ' . $record->lead_auditor_signed_at->format('d M Y H:i'))
+                            : '—'
+                        ),
+
+                    Forms\Components\Placeholder::make('pm_approved_display')
+                        ->label('PM Approved')
+                        ->content(fn ($record) => $record?->pm_approved_at
+                            ? ($record->pmApprover?->name . ' — ' . $record->pm_approved_at->format('d M Y H:i'))
+                            : '—'
+                        ),
+
+                    Forms\Components\Placeholder::make('client_approved_display')
+                        ->label('Client Approved')
+                        ->content(fn ($record) => $record?->client_approved_at
+                            ? ($record->clientApprover?->name . ' — ' . $record->client_approved_at->format('d M Y H:i'))
+                            : '—'
+                        ),
+
+                    Forms\Components\Placeholder::make('final_approved_display')
+                        ->label('Final Approval')
+                        ->content(fn ($record) => $record?->final_approved_at
+                            ? ($record->finalApprover?->name . ' — ' . $record->final_approved_at->format('d M Y H:i'))
+                            : '—'
+                        ),
+
+                    Forms\Components\Placeholder::make('rejection_reason_display')
+                        ->label('Rejection Reason')
+                        ->content(fn ($record) => $record?->rejection_reason ?? '—')
+                        ->columnSpan(3),
                 ]),
         ]);
     }
@@ -236,6 +291,23 @@ class EnvironmentalAuditResource extends Resource
                     ->label('Findings')
                     ->counts('findings')
                     ->badge()->color('warning'),
+
+                Tables\Columns\TextColumn::make('approval_status')
+                    ->label('Approval')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $s) =>
+                        EnvironmentalAudit::APPROVAL_STATUS_LABELS[$s ?? 'draft'] ?? 'Draft'
+                    )
+                    ->color(fn (?string $state) => match ($state) {
+                        'final_approved'      => 'success',
+                        'client_approved',
+                        'pm_approved',
+                        'lead_auditor_signed' => 'info',
+                        'submitted'           => 'warning',
+                        'rejected'            => 'danger',
+                        default               => 'gray',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -247,10 +319,11 @@ class EnvironmentalAuditResource extends Resource
 
                 Tables\Filters\SelectFilter::make('rating')
                     ->options([
-                        'excellent' => 'Excellent',
-                        'good'      => 'Good',
-                        'fair'      => 'Fair',
-                        'poor'      => 'Poor',
+                        'excellent' => 'Excellent (90–100%)',
+                        'good'      => 'Good (80–89%)',
+                        'fair'      => 'Fair (70–79%)',
+                        'poor'      => 'Poor (50–69%)',
+                        'critical'  => 'Critical (<50%)',
                     ]),
 
                 Tables\Filters\SelectFilter::make('project_id')
@@ -260,17 +333,151 @@ class EnvironmentalAuditResource extends Resource
             ])
             ->defaultSort('audit_date', 'desc')
             ->actions([
+                // ── Step 17 Approval Workflow Actions ──
+                Tables\Actions\Action::make('submit')
+                    ->label('Submit')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->approval_status === 'draft'
+                        && auth()->user()?->can('manage esia_audits'))
+                    ->action(function ($record) {
+                        self::recordApproval($record, 'submitted', 'approved');
+                        $record->update(['approval_status' => 'submitted']);
+                        Notification::make()->title('Audit submitted for review')->success()->send();
+                    }),
+
+                Tables\Actions\Action::make('lead_auditor_sign')
+                    ->label('Lead Auditor Sign')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('info')
+                    ->form([
+                        Forms\Components\Textarea::make('comments')->label('Lead Auditor Comments')->rows(3),
+                    ])
+                    ->visible(fn ($record) => $record->approval_status === 'submitted'
+                        && auth()->user()?->hasAnyRole(['md', 'hse_manager', 'lead_auditor']))
+                    ->action(function ($record, array $data) {
+                        self::recordApproval($record, 'lead_auditor_signed', 'approved', $data['comments'] ?? null);
+                        $record->update([
+                            'approval_status'        => 'lead_auditor_signed',
+                            'lead_auditor_signed_by' => auth()->id(),
+                            'lead_auditor_signed_at' => now(),
+                            'lead_auditor_comments'  => $data['comments'] ?? null,
+                        ]);
+                        Notification::make()->title('Lead Auditor signature recorded')->success()->send();
+                    }),
+
+                Tables\Actions\Action::make('pm_approve')
+                    ->label('PM Approve')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('info')
+                    ->form([
+                        Forms\Components\Textarea::make('comments')->label('Project Manager Comments')->rows(3),
+                    ])
+                    ->visible(fn ($record) => $record->approval_status === 'lead_auditor_signed'
+                        && auth()->user()?->hasAnyRole(['md', 'business_director']))
+                    ->action(function ($record, array $data) {
+                        self::recordApproval($record, 'pm_approved', 'approved', $data['comments'] ?? null);
+                        $record->update([
+                            'approval_status' => 'pm_approved',
+                            'pm_approved_by'  => auth()->id(),
+                            'pm_approved_at'  => now(),
+                            'pm_comments'     => $data['comments'] ?? null,
+                        ]);
+                        Notification::make()->title('Project Manager approval recorded')->success()->send();
+                    }),
+
+                Tables\Actions\Action::make('client_approve')
+                    ->label('Client Approve')
+                    ->icon('heroicon-o-building-office')
+                    ->color('info')
+                    ->form([
+                        Forms\Components\Textarea::make('comments')->label('Client Comments')->rows(3),
+                    ])
+                    ->visible(fn ($record) => $record->approval_status === 'pm_approved'
+                        && auth()->user()?->hasAnyRole(['md', 'business_director']))
+                    ->action(function ($record, array $data) {
+                        self::recordApproval($record, 'client_approved', 'approved', $data['comments'] ?? null);
+                        $record->update([
+                            'approval_status'    => 'client_approved',
+                            'client_approved_by' => auth()->id(),
+                            'client_approved_at' => now(),
+                            'client_comments'    => $data['comments'] ?? null,
+                        ]);
+                        Notification::make()->title('Client approval recorded')->success()->send();
+                    }),
+
+                Tables\Actions\Action::make('final_approve')
+                    ->label('Final Approve')
+                    ->icon('heroicon-o-shield-check')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\Textarea::make('comments')->label('Final Approval Comments')->rows(3),
+                    ])
+                    ->visible(fn ($record) => $record->approval_status === 'client_approved'
+                        && auth()->user()?->hasAnyRole(['md']))
+                    ->action(function ($record, array $data) {
+                        self::recordApproval($record, 'final_approved', 'approved', $data['comments'] ?? null);
+                        $record->update([
+                            'approval_status'  => 'final_approved',
+                            'final_approved_by' => auth()->id(),
+                            'final_approved_at' => now(),
+                            'final_comments'    => $data['comments'] ?? null,
+                            'status'            => 'closed',
+                        ]);
+                        Notification::make()->title('Audit finally approved and closed')->success()->send();
+                    }),
+
+                Tables\Actions\Action::make('reject')
+                    ->label('Reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->form([
+                        Forms\Components\Textarea::make('reason')
+                            ->label('Rejection Reason')
+                            ->required()->rows(3),
+                    ])
+                    ->visible(fn ($record) => in_array($record->approval_status, ['submitted', 'lead_auditor_signed', 'pm_approved', 'client_approved'])
+                        && auth()->user()?->hasAnyRole(['md', 'hse_manager', 'lead_auditor', 'business_director']))
+                    ->action(function ($record, array $data) {
+                        self::recordApproval($record, 'rejected', 'rejected', $data['reason']);
+                        $record->update([
+                            'approval_status'  => 'rejected',
+                            'rejection_reason' => $data['reason'],
+                        ]);
+                        Notification::make()->title('Audit rejected — returned to auditor')->danger()->send();
+                    }),
+
                 Tables\Actions\Action::make('pdf')
                     ->label('PDF')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('gray')
                     ->url(fn ($record) => route('pdf.env.audit', $record))
                     ->openUrlInNewTab(),
+
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()]),
             ]);
+    }
+
+    protected static function recordApproval(
+        EnvironmentalAudit $record,
+        string $stage,
+        string $action,
+        ?string $comments = null
+    ): void {
+        EnvAuditApprovalLog::create([
+            'audit_id'       => $record->id,
+            'user_id'        => auth()->id(),
+            'stage'          => $stage,
+            'action'         => $action,
+            'comments'       => $comments,
+            'signature_text' => auth()->user()->name,
+            'signed_at'      => now(),
+        ]);
     }
 
     public static function getRelations(): array
