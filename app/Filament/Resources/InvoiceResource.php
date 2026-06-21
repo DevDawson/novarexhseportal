@@ -296,6 +296,13 @@ class InvoiceResource extends Resource
                     ->url(fn (Invoice $record) => route('pdf.invoice', $record))
                     ->openUrlInNewTab(),
 
+                Tables\Actions\Action::make('docx')
+                    ->label('DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn (Invoice $record) => route('docx.invoice', $record))
+                    ->openUrlInNewTab(),
+
                 Tables\Actions\Action::make('sendEmail')
                     ->label('Email')
                     ->icon('heroicon-o-envelope')

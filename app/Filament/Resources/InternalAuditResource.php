@@ -368,11 +368,23 @@ class InternalAuditResource extends Resource
                     ->color('gray')
                     ->url(fn ($record) => route('pdf.audit', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('export_docx')
+                    ->label('DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn ($record) => route('docx.audit', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\Action::make('ams_pdf')
                     ->label('AMS Report')
                     ->icon('heroicon-o-clipboard-document-list')
                     ->color('primary')
                     ->url(fn ($record) => route('pdf.ams.audit', $record))
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('ams_docx')
+                    ->label('AMS DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn ($record) => route('docx.ams.audit', $record))
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])

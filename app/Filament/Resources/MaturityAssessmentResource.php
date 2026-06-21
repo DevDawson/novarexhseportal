@@ -268,6 +268,13 @@ class MaturityAssessmentResource extends Resource
                     ->url(fn ($record) => route('pdf.maturity', $record))
                     ->openUrlInNewTab(),
 
+                Tables\Actions\Action::make('docx')
+                    ->label('DOCX Scorecard')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn ($record) => route('docx.maturity', $record))
+                    ->openUrlInNewTab(),
+
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

@@ -20,6 +20,12 @@ class ListEsgTargets extends ListRecords
                 ->color('gray')
                 ->url(route('pdf.esg.summary'))
                 ->openUrlInNewTab(),
+            Action::make('export_esg_docx')
+                ->label('Export ESG Summary DOCX')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->url(route('docx.esg.summary'))
+                ->openUrlInNewTab(),
             Actions\CreateAction::make(),
         ];
     }

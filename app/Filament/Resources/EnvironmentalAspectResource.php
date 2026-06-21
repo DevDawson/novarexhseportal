@@ -278,6 +278,12 @@ class EnvironmentalAspectResource extends Resource
                     ->color('gray')
                     ->url(fn ($record) => route('pdf.ems.aspect', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('export_docx')
+                    ->label('DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn ($record) => route('docx.ems.aspect', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

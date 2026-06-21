@@ -692,6 +692,12 @@ class PermitToWorkResource extends Resource
                     ->color('gray')
                     ->url(fn (PermitToWork $record) => route('pdf.ptw.permit', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('docx')
+                    ->label('DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn (PermitToWork $record) => route('docx.ptw.permit', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

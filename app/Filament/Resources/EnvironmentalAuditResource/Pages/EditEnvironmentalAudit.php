@@ -19,6 +19,12 @@ class EditEnvironmentalAudit extends EditRecord
                 ->color('gray')
                 ->url(fn () => route('pdf.env.audit', $this->record))
                 ->openUrlInNewTab(),
+            Actions\Action::make('export_docx')
+                ->label('Export DOCX')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->url(fn () => route('docx.env.audit', $this->record))
+                ->openUrlInNewTab(),
             Actions\DeleteAction::make(),
         ];
     }

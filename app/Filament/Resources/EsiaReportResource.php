@@ -153,6 +153,12 @@ class EsiaReportResource extends Resource
                     ->color('gray')
                     ->url(fn ($record) => route('pdf.esia.report', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('export_docx')
+                    ->label('DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn ($record) => route('docx.esia.report', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

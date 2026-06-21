@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Http\Response;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\Shared\Html;
+
+class DocxService
+{
+    /**
+     * Render a Blade view to HTML, convert to DOCX, and return a download response.
+     *
+     * PhpWord's HTML parser supports tables, headings, paragraphs, bold/italic.
+     * It does NOT support CSS classes or complex inline styles — those are stripped
+     * before parsing so the document is clean in Word.
+     */
+    public static function download(
+        string $viewName,
+        array  $data,
+        string $filename,
+        string $orientation = 'portrait'
+    ): Response {
+        $html = view($viewName, $data)->render();
+
+        // Strip style blocks and script blocks — PhpWord ignores CSS classes anyway
+        $html = preg_replace('/<style[^>]*>.*?<\/style>/si', '', $html);
+        $html = preg_replace('/<script[^>]*>.*?<\/script>/si', '', $html);
+
+        // Strip inline style attributes — prevents PhpWord parser errors on complex CSS
+        $html = preg_replace('/\s+style="[^"]*"/i', '', $html);
+
+        // Strip class attributes
+        $html = preg_replace('/\s+class="[^"]*"/i', '', $html);
+
+        // Remove <img> tags (logos etc.) — PhpWord needs file paths, not URLs
+        $html = preg_replace('/<img[^>]*>/i', '', $html);
+
+        // Collapse excessive whitespace from removed elements
+        $html = preg_replace('/\n{3,}/', "\n\n", $html);
+
+        $phpWord = new PhpWord();
+        $phpWord->setDefaultFontName('Calibri');
+        $phpWord->setDefaultFontSize(11);
+
+        $section = $phpWord->addSection([
+            'orientation'  => $orientation === 'landscape' ? 'landscape' : 'portrait',
+            'marginLeft'   => 1080,
+            'marginRight'  => 1080,
+            'marginTop'    => 1080,
+            'marginBottom' => 1080,
+        ]);
+
+        Html::addHtml($section, $html, false, false);
+
+        $writer = IOFactory::createWriter($phpWord, 'Word2007');
+
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_clean();
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '.docx"',
+            'Cache-Control'       => 'no-cache, no-store',
+        ]);
+    }
+}

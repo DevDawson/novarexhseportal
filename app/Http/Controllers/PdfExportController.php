@@ -17,8 +17,8 @@ use App\Models\MaturityAssessment;
 use App\Models\MaturityDimension;
 use App\Models\Setting;
 use App\Models\SocialIndicator;
+use App\Services\DocxService;
 use App\Services\MaturityScoringService;
-use App\Services\HazopScoringService;
 use App\Services\RiskScoringService;
 use App\Models\EsiaBaselineData;
 use App\Models\EsiaImpactAssessment;
@@ -368,6 +368,230 @@ class PdfExportController extends Controller
         $filename = 'HSE-Maturity-Scorecard-' . $assessment->period . '-' . now()->format('Ymd') . '.pdf';
 
         return $pdf->download($filename);
+    }
+
+    // ================================================================
+    // DOCX EXPORTS — same data, same views, Word format via PhpWord
+    // ================================================================
+
+    public function hiraDocx(HazardRegister $hazard): Response
+    {
+        abort_unless(auth()->user()?->can('manage hazards'), 403);
+
+        $hazard->load('project', 'responsiblePerson');
+
+        return DocxService::download('pdf.hira', [
+            'hazard'    => $hazard,
+            'initLevel' => RiskScoringService::level((int) $hazard->initial_risk_score),
+            'residLevel'=> RiskScoringService::level((int) $hazard->residual_risk_score),
+        ], "HIRA-{$hazard->id}-" . now()->format('Ymd'));
+    }
+
+    public function auditReportDocx(InternalAudit $audit): Response
+    {
+        abort_unless(auth()->user()?->can('manage audits'), 403);
+
+        $audit->load('leadAuditor', 'teamMembers', 'findings.responsiblePerson', 'project', 'department');
+
+        return DocxService::download('pdf.audit-report', [
+            'audit' => $audit,
+        ], "{$audit->audit_reference}-Report-" . now()->format('Ymd'));
+    }
+
+    public function incidentReportDocx(Incident $incident): Response
+    {
+        abort_unless(auth()->user()?->can('manage incidents'), 403);
+
+        $incident->load('project', 'reportedBy');
+
+        return DocxService::download('pdf.incident-report', [
+            'incident'  => $incident,
+            'riskLevel' => RiskScoringService::level((int) $incident->risk_score),
+        ], "Incident-{$incident->id}-Report-" . now()->format('Ymd'));
+    }
+
+    public function environmentalAspectDocx(EnvironmentalAspect $aspect): Response
+    {
+        abort_unless(auth()->user()?->can('manage environmental_aspects'), 403);
+
+        $aspect->load('project', 'responsiblePerson');
+
+        return DocxService::download('pdf.environmental-aspect', [
+            'aspect'   => $aspect,
+            'sigLevel' => RiskScoringService::level((int) $aspect->significance_score),
+        ], "EMS-Aspect-{$aspect->id}-" . now()->format('Ymd'));
+    }
+
+    public function esiaReportDocx(EsiaReport $report): Response
+    {
+        abort_unless(auth()->user()?->can('manage esia_audits'), 403);
+
+        $report->load('project', 'author', 'reviewedBy');
+
+        $projectId    = $report->project_id;
+        $screening    = EsiaScreening::where('project_id', $projectId)->latest()->first();
+        $scopingIssues = EsiaScopingIssue::where('project_id', $projectId)->orderBy('sort_order')->get();
+        $baselineData  = EsiaBaselineData::where('project_id', $projectId)->orderBy('parameter_type')->get();
+        $impacts       = EsiaImpactAssessment::where('project_id', $projectId)->get();
+        $mitigations   = EsiaMitigationAction::where('project_id', $projectId)->orderBy('timeline_start')->get();
+        $submissions   = EsiaRegulatorySubmission::where('project_id', $projectId)->orderBy('submitted_at')->get();
+
+        return DocxService::download('pdf.esia-report', compact(
+            'report', 'screening', 'scopingIssues', 'baselineData',
+            'impacts', 'mitigations', 'submissions'
+        ), "ESIA-{$report->project_id}-Report-v{$report->version}-" . now()->format('Ymd'));
+    }
+
+    public function esgSummaryDocx(): Response
+    {
+        abort_unless(auth()->user()?->hasAnyRole(['md', 'esg_officer', 'business_director']), 403);
+
+        $targets    = EsgTarget::with('owner')->orderBy('category')->orderBy('period')->get();
+        $grievances = Grievance::whereNotIn('status', ['closed', 'resolved'])->get();
+        $policies   = GovernancePolicy::where('status', 'active')->orderBy('review_date')->get();
+        $social     = SocialIndicator::orderBy('period', 'desc')->orderBy('indicator_type')->get();
+
+        return DocxService::download('pdf.esg-summary', compact('targets', 'grievances', 'policies', 'social'),
+            'ESG-Summary-' . now()->format('Y-m-d'));
+    }
+
+    public function hazopStudyDocx(HazopStudy $study): Response
+    {
+        abort_unless(auth()->user()?->can('manage hazop'), 403);
+
+        $study->load(['project', 'department', 'facilitator', 'reviewedBy', 'approvedBy']);
+
+        $nodes = $study->nodes()
+            ->with(['riskOwner', 'department', 'closureVerifiedBy'])
+            ->orderBy('node_number')
+            ->get();
+
+        return DocxService::download('pdf.hazop-study', [
+            'study' => $study,
+            'nodes' => $nodes,
+        ], "{$study->study_ref}-Report-" . now()->format('Ymd'), 'landscape');
+    }
+
+    public function hazopProcedureDocx(): Response
+    {
+        abort_unless(auth()->user()?->can('manage hazop'), 403);
+
+        return DocxService::download('pdf.hazop-procedure', [],
+            'NOVAREX-HAZOP-Procedure-PRO-HSE-HAZOP-001-' . now()->format('Ymd'));
+    }
+
+    public function ptwPermitDocx(PermitToWork $permit): Response
+    {
+        abort_unless(auth()->user()?->can('manage permits'), 403);
+
+        $permit->load([
+            'project', 'department', 'requestedBy', 'issuedBy', 'areaAuthority',
+            'supervisor', 'finalApprovedBy', 'completionConfirmedBy', 'closeoutBy',
+            'linkedHazard', 'linkedHazopNode.study', 'linkedIncident',
+        ]);
+
+        $checklistItems = $permit->checklistItems()->get();
+        $approvals      = $permit->approvals()->with('approver')->get();
+
+        return DocxService::download('pdf.ptw-permit', [
+            'permit'         => $permit,
+            'checklistItems' => $checklistItems,
+            'approvals'      => $approvals,
+        ], "{$permit->permit_number}-Certificate-" . now()->format('Ymd'));
+    }
+
+    public function amsAuditReportDocx(InternalAudit $audit): Response
+    {
+        abort_unless(auth()->user()?->can('manage audits'), 403);
+
+        $audit->load([
+            'project', 'department', 'leadAuditor', 'approvedBy', 'teamMembers',
+            'checklistItems', 'nonConformities.assignedTo',
+            'amsCapaActions.responsiblePerson', 'amsCapaActions.nc',
+        ]);
+
+        return DocxService::download('pdf.ams-audit-report', compact('audit'),
+            $audit->audit_reference . '-AMS-Report-' . now()->format('Ymd'));
+    }
+
+    public function environmentalAuditDocx(EnvironmentalAudit $audit): Response
+    {
+        abort_unless(auth()->user()?->can('manage esia_audits'), 403);
+
+        $audit->load([
+            'project', 'department', 'teamLeader', 'leadAuditor', 'approvedBy',
+            'checklistItems', 'findings.closedBy',
+            'leadAuditorSigner', 'pmApprover', 'clientApprover', 'finalApprover',
+            'approvalLogs.user',
+        ]);
+
+        return DocxService::download('pdf.environmental-audit', compact('audit'),
+            $audit->audit_number . '-Environmental-Audit-Report-' . now()->format('Ymd'));
+    }
+
+    public function invoiceDocx(Invoice $invoice): Response
+    {
+        abort_unless(auth()->user()?->can('manage invoices'), 403);
+
+        $invoice->load('client', 'project', 'items', 'createdBy');
+
+        $company = [
+            'name'    => Setting::companyName(),
+            'tagline' => Setting::companyTagline(),
+            'address' => Setting::companyAddress(),
+            'tin'     => Setting::companyTin(),
+            'phone'   => Setting::companyPhone(),
+            'email'   => Setting::companyEmail(),
+        ];
+
+        $bank = Setting::bankDetails();
+
+        return DocxService::download('pdf.invoice', compact('invoice', 'company', 'bank'),
+            "{$invoice->invoice_number}-" . now()->format('Ymd'));
+    }
+
+    public function maturityScorecardDocx(MaturityAssessment $assessment): Response
+    {
+        abort_unless(
+            auth()->user()?->hasAnyRole(['md', 'hse_manager', 'hse_staff', 'lead_auditor', 'business_director']),
+            403
+        );
+
+        $assessment->load('project', 'assessedBy', 'scores.indicator.dimension');
+
+        $breakdown = MaturityScoringService::dimensionBreakdown($assessment);
+
+        $indicatorDetail = [];
+        foreach (MaturityDimension::with('indicators')->orderBy('sort_order')->get() as $dim) {
+            $indicators = [];
+            foreach ($dim->indicators as $ind) {
+                $score = $assessment->scores->firstWhere('indicator_id', $ind->id);
+                $indicators[] = [
+                    'name'     => $ind->name,
+                    'score'    => $score?->score ?? '—',
+                    'auto'     => $score?->auto_calculated ?? false,
+                    'evidence' => $score?->evidence,
+                ];
+            }
+            $indicatorDetail[$dim->code] = ['name' => $dim->name, 'indicators' => $indicators];
+        }
+
+        $trend = MaturityAssessment::where('status', 'finalised')
+            ->orderByDesc('assessed_at')->take(6)->get()->reverse()->values()
+            ->map(fn ($a) => ['period' => $a->period, 'score' => $a->overall_score, 'level' => $a->maturity_level])
+            ->toArray();
+
+        $levelDescription = match (true) {
+            ($assessment->overall_score ?? 0) >= 4.3 => 'Optimizing — HSE practices are world-class, data-driven, and continuously improved.',
+            ($assessment->overall_score ?? 0) >= 3.5 => 'Proactive — HSE is systematically managed with predictive controls in place.',
+            ($assessment->overall_score ?? 0) >= 3.0 => 'Defined — Documented, standardised HSE processes exist and are consistently applied.',
+            ($assessment->overall_score ?? 0) >= 2.0 => 'Basic — Some HSE processes exist but are reactive and inconsistently applied.',
+            default                                   => 'Initial — HSE management is ad-hoc, reactive, and largely undocumented.',
+        };
+
+        return DocxService::download('pdf.maturity-scorecard', compact(
+            'assessment', 'breakdown', 'indicatorDetail', 'trend', 'levelDescription'
+        ), 'HSE-Maturity-Scorecard-' . $assessment->period . '-' . now()->format('Ymd'));
     }
 
     // ----------------------------------------------------------------

@@ -456,6 +456,13 @@ class EnvironmentalAuditResource extends Resource
                     ->url(fn ($record) => route('pdf.env.audit', $record))
                     ->openUrlInNewTab(),
 
+                Tables\Actions\Action::make('docx')
+                    ->label('DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn ($record) => route('docx.env.audit', $record))
+                    ->openUrlInNewTab(),
+
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

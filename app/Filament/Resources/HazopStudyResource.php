@@ -278,6 +278,12 @@ class HazopStudyResource extends Resource
                     ->color('gray')
                     ->url(fn () => route('pdf.hazop.procedure'))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('download_procedure_docx')
+                    ->label('HAZOP Procedure DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn () => route('docx.hazop.procedure'))
+                    ->openUrlInNewTab(),
             ])
             ->actions([
                 Tables\Actions\Action::make('export_pdf')
@@ -285,6 +291,12 @@ class HazopStudyResource extends Resource
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('gray')
                     ->url(fn ($record) => route('pdf.hazop.study', $record))
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('export_docx')
+                    ->label('DOCX')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->url(fn ($record) => route('docx.hazop.study', $record))
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])

@@ -57,3 +57,48 @@ Route::middleware(['auth', 'verified'])->prefix('pdf')->name('pdf.')->group(func
     Route::get('/maturity/{assessment}',   [PdfExportController::class, 'maturityScorecard'])
         ->name('maturity');
 });
+
+// ----------------------------------------------------------------
+// DOCX Export Routes (parallel to PDF routes)
+// ----------------------------------------------------------------
+Route::middleware(['auth', 'verified'])->prefix('docx')->name('docx.')->group(function () {
+
+    Route::get('/hira/{hazard}',           [PdfExportController::class, 'hiraDocx'])
+        ->name('hira');
+
+    Route::get('/audit/{audit}',           [PdfExportController::class, 'auditReportDocx'])
+        ->name('audit');
+
+    Route::get('/incident/{incident}',     [PdfExportController::class, 'incidentReportDocx'])
+        ->name('incident');
+
+    Route::get('/ems/aspect/{aspect}',     [PdfExportController::class, 'environmentalAspectDocx'])
+        ->name('ems.aspect');
+
+    Route::get('/esg/summary',             [PdfExportController::class, 'esgSummaryDocx'])
+        ->name('esg.summary');
+
+    Route::get('/esia/report/{report}',    [PdfExportController::class, 'esiaReportDocx'])
+        ->name('esia.report');
+
+    Route::get('/hazop/study/{study}',     [PdfExportController::class, 'hazopStudyDocx'])
+        ->name('hazop.study');
+
+    Route::get('/hazop/procedure',         [PdfExportController::class, 'hazopProcedureDocx'])
+        ->name('hazop.procedure');
+
+    Route::get('/ptw/permit/{permit}',     [PdfExportController::class, 'ptwPermitDocx'])
+        ->name('ptw.permit');
+
+    Route::get('/env/audit/{audit}',       [PdfExportController::class, 'environmentalAuditDocx'])
+        ->name('env.audit');
+
+    Route::get('/ams/audit/{audit}',       [PdfExportController::class, 'amsAuditReportDocx'])
+        ->name('ams.audit');
+
+    Route::get('/invoice/{invoice}',       [PdfExportController::class, 'invoiceDocx'])
+        ->name('invoice');
+
+    Route::get('/maturity/{assessment}',   [PdfExportController::class, 'maturityScorecardDocx'])
+        ->name('maturity');
+});
