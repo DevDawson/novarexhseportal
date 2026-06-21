@@ -314,11 +314,6 @@ class EsgMaturityAssessmentResource extends Resource
             ]);
     }
 
-    protected static function afterSave($record): void
-    {
-        EsgMaturityService::recalculate($record);
-    }
-
     public static function getPages(): array
     {
         return [
