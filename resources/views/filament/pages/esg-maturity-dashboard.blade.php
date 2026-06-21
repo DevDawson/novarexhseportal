@@ -171,10 +171,10 @@
                 $s = $ind['score'];
                 $src = $autoSources[$indKey] ?? 'manual';
                 $srcBadge = match($src) {
-                    'auto'            => ['bg-emerald-100 text-emerald-800', 'AUTO'],
-                    'semi_auto'       => ['bg-blue-100 text-blue-800', 'SEMI-AUTO'],
-                    'manual_required' => ['bg-amber-100 text-amber-800', 'ENTER MANUALLY'],
-                    default           => ['bg-gray-100 text-gray-700', 'MANUAL'],
+                    'auto'            => ['bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300', 'AUTO'],
+                    'semi_auto'       => ['bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300', 'SEMI-AUTO'],
+                    'manual_required' => ['bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300', 'ENTER MANUALLY'],
+                    default           => ['bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300', 'MANUAL'],
                 };
                 $barWidth = max(2, min(100, $s));
             @endphp
@@ -183,7 +183,7 @@
                     <div class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ $ind['label'] }}</div>
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-bold px-1.5 py-0.5 rounded {{ $srcBadge[0] }}">{{ $srcBadge[1] }}</span>
-                        <span class="text-sm font-bold {{ $s >= 80 ? 'text-green-600' : ($s >= 60 ? 'text-amber-600' : 'text-red-600') }}">
+                        <span class="text-sm font-bold {{ $s >= 80 ? 'text-green-600 dark:text-green-400' : ($s >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
                             {{ $s > 0 ? number_format($s, 1) . '%' : '—' }}
                         </span>
                     </div>
@@ -238,7 +238,7 @@
                     <td class="px-4 py-2 text-center font-bold">
                         {{ number_format($hMi, 2) }}%
                         @if($delta !== null)
-                        <span class="{{ $delta >= 0 ? 'text-green-600' : 'text-red-600' }} text-xs ml-1">
+                        <span class="{{ $delta >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} text-xs ml-1">
                             {{ $delta >= 0 ? '▲' : '▼' }}{{ number_format(abs($delta), 1) }}
                         </span>
                         @endif

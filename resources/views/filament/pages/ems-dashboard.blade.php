@@ -82,10 +82,10 @@
         <div class="rounded-lg border border-blue-200 dark:border-blue-800 overflow-hidden">
             <div class="bg-blue-600 text-white px-4 py-2 font-bold text-sm tracking-wide">1. PLAN</div>
             <div class="p-3 space-y-1 bg-blue-50 dark:bg-blue-900/20 text-xs text-gray-700 dark:text-gray-300">
-                <div class="flex items-start gap-1.5"><span class="text-blue-500 mt-0.5">▸</span> Environmental Policy</div>
-                <div class="flex items-start gap-1.5"><span class="text-blue-500 mt-0.5">▸</span> Aspects &amp; Impacts Assessment</div>
-                <div class="flex items-start gap-1.5"><span class="text-blue-500 mt-0.5">▸</span> Legal &amp; Requirements Register</div>
-                <div class="flex items-start gap-1.5"><span class="text-blue-500 mt-0.5">▸</span> Objectives, Targets &amp; Programs</div>
+                <div class="flex items-start gap-1.5"><span class="text-blue-500 dark:text-blue-300 mt-0.5">▸</span> Environmental Policy</div>
+                <div class="flex items-start gap-1.5"><span class="text-blue-500 dark:text-blue-300 mt-0.5">▸</span> Aspects &amp; Impacts Assessment</div>
+                <div class="flex items-start gap-1.5"><span class="text-blue-500 dark:text-blue-300 mt-0.5">▸</span> Legal &amp; Requirements Register</div>
+                <div class="flex items-start gap-1.5"><span class="text-blue-500 dark:text-blue-300 mt-0.5">▸</span> Objectives, Targets &amp; Programs</div>
             </div>
         </div>
 
@@ -93,10 +93,10 @@
         <div class="rounded-lg border border-green-200 dark:border-green-800 overflow-hidden">
             <div class="bg-green-600 text-white px-4 py-2 font-bold text-sm tracking-wide">2. DO</div>
             <div class="p-3 space-y-1 bg-green-50 dark:bg-green-900/20 text-xs text-gray-700 dark:text-gray-300">
-                <div class="flex items-start gap-1.5"><span class="text-green-500 mt-0.5">▸</span> Operational Controls</div>
-                <div class="flex items-start gap-1.5"><span class="text-green-500 mt-0.5">▸</span> Training &amp; Awareness</div>
-                <div class="flex items-start gap-1.5"><span class="text-green-500 mt-0.5">▸</span> Communication &amp; Consultation</div>
-                <div class="flex items-start gap-1.5"><span class="text-green-500 mt-0.5">▸</span> Emergency Preparedness</div>
+                <div class="flex items-start gap-1.5"><span class="text-green-500 dark:text-green-300 mt-0.5">▸</span> Operational Controls</div>
+                <div class="flex items-start gap-1.5"><span class="text-green-500 dark:text-green-300 mt-0.5">▸</span> Training &amp; Awareness</div>
+                <div class="flex items-start gap-1.5"><span class="text-green-500 dark:text-green-300 mt-0.5">▸</span> Communication &amp; Consultation</div>
+                <div class="flex items-start gap-1.5"><span class="text-green-500 dark:text-green-300 mt-0.5">▸</span> Emergency Preparedness</div>
             </div>
         </div>
 
@@ -104,9 +104,9 @@
         <div class="rounded-lg border border-yellow-200 dark:border-yellow-800 overflow-hidden">
             <div class="bg-yellow-500 text-white px-4 py-2 font-bold text-sm tracking-wide">3. CHECK</div>
             <div class="p-3 space-y-1 bg-yellow-50 dark:bg-yellow-900/20 text-xs text-gray-700 dark:text-gray-300">
-                <div class="flex items-start gap-1.5"><span class="text-yellow-600 mt-0.5">▸</span> Monitoring &amp; KPI Management</div>
-                <div class="flex items-start gap-1.5"><span class="text-yellow-600 mt-0.5">▸</span> Compliance Evaluation</div>
-                <div class="flex items-start gap-1.5"><span class="text-yellow-600 mt-0.5">▸</span> Internal Environmental Audits</div>
+                <div class="flex items-start gap-1.5"><span class="text-yellow-600 dark:text-yellow-300 mt-0.5">▸</span> Monitoring &amp; KPI Management</div>
+                <div class="flex items-start gap-1.5"><span class="text-yellow-600 dark:text-yellow-300 mt-0.5">▸</span> Compliance Evaluation</div>
+                <div class="flex items-start gap-1.5"><span class="text-yellow-600 dark:text-yellow-300 mt-0.5">▸</span> Internal Environmental Audits</div>
             </div>
         </div>
 
@@ -114,9 +114,9 @@
         <div class="rounded-lg border border-red-200 dark:border-red-800 overflow-hidden">
             <div class="bg-red-600 text-white px-4 py-2 font-bold text-sm tracking-wide">4. ACT</div>
             <div class="p-3 space-y-1 bg-red-50 dark:bg-red-900/20 text-xs text-gray-700 dark:text-gray-300">
-                <div class="flex items-start gap-1.5"><span class="text-red-500 mt-0.5">▸</span> Nonconformities &amp; Corrective Actions</div>
-                <div class="flex items-start gap-1.5"><span class="text-red-500 mt-0.5">▸</span> Management Review</div>
-                <div class="flex items-start gap-1.5"><span class="text-red-500 mt-0.5">▸</span> Continual Improvement (Cl. 10)</div>
+                <div class="flex items-start gap-1.5"><span class="text-red-500 dark:text-red-300 mt-0.5">▸</span> Nonconformities &amp; Corrective Actions</div>
+                <div class="flex items-start gap-1.5"><span class="text-red-500 dark:text-red-300 mt-0.5">▸</span> Management Review</div>
+                <div class="flex items-start gap-1.5"><span class="text-red-500 dark:text-red-300 mt-0.5">▸</span> Continual Improvement (Cl. 10)</div>
             </div>
         </div>
     </div>
